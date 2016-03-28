@@ -19,7 +19,7 @@ type alias Model =
 type alias Snippet =
   { content : String
   , index : Int
-  , snippetType : SnippetType
+  , kind : SnippetType
   }
 
 type Action
@@ -37,7 +37,7 @@ type SnippetType
 
 makeEntry : Model -> Snippet
 makeEntry {field, currentIndex, currentSnippetType} =
-  { content = field, index = currentIndex, snippetType = currentSnippetType}
+  { content = field, index = currentIndex, kind = currentSnippetType}
 
 doUpdateField newValue model =
   { model | field = newValue }
@@ -51,16 +51,16 @@ regexToSnippetType =
 findFirstMatch : String -> List (Regex, SnippetType) -> SnippetType
 findFirstMatch query list =
   case list of
-    ((regex, snippetType) :: t) ->
+    ((regex, kind) :: t) ->
       if contains regex query
-      then snippetType
+      then kind
       else findFirstMatch query t
     [] -> PlainText
 
 figureOutSnippetType : Model -> Model
 figureOutSnippetType model =
-  let snippetType = findFirstMatch model.field regexToSnippetType
-  in { model | currentSnippetType = snippetType }
+  let kind = findFirstMatch model.field regexToSnippetType
+  in { model | currentSnippetType = kind }
 
 update action model =
   case action of
@@ -76,11 +76,11 @@ update action model =
       }
     DeleteEntry index ->
       { model | entries = List.filter (\t -> t.index /= index) model.entries }
-    ChooseSnippetType snippetType ->
-      { model |  currentSnippetType = snippetType }
+    ChooseSnippetType kind ->
+      { model |  currentSnippetType = kind }
 
-renderSnippetType {snippetType} =
-  case snippetType of
+renderSnippetType {kind} =
+  case kind of
     PlainText ->
       "this is plaintext"
     StickyNote ->
@@ -118,14 +118,14 @@ snippetTypeOptions currentSnippetType =
 
 doChooseSnippetType a =
   let
-    snippetType = case a of
+    kind = case a of
       "PlainText" -> PlainText
       "Sticky note" -> StickyNote
       "Markdown" -> Markdown
       "SoundCloud" -> SoundCloud
       _ -> PlainText
   in
-    Signal.message mainMailbox.address (ChooseSnippetType snippetType)
+    Signal.message mainMailbox.address (ChooseSnippetType kind)
 
 -- onEnter : Action -> Attribute
 onEnter action =
