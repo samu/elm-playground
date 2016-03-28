@@ -6,7 +6,7 @@ import Graphics.Element exposing (..)
 import Signal exposing (..)
 
 import Graphics.Input exposing (dropDown)
-import Json.Decode exposing (customDecoder)
+import Json.Decode exposing (customDecoder, object2, Decoder)
 import Regex exposing (..)
 
 type alias Model =
@@ -20,14 +20,16 @@ type alias Snippet =
   { content : String
   , index : Int
   , kind : SnippetType
+  , tags : List String
   }
 
 type Action
   = NoOp
   | UpdateField String
-  | AddEntry
+  | AddEntry String
   | DeleteEntry Int
   | ChooseSnippetType SnippetType
+  | AddTag Int String
 
 type SnippetType
   = PlainText
@@ -35,9 +37,11 @@ type SnippetType
   | Markdown
   | SoundCloud
 
-makeEntry : Model -> Snippet
-makeEntry {field, currentIndex, currentSnippetType} =
-  { content = field, index = currentIndex, kind = currentSnippetType}
+makeEntry field currentIndex currentSnippetType =
+  { content = field
+  , index = currentIndex
+  , kind = currentSnippetType
+  , tags = [] }
 
 doUpdateField newValue model =
   { model | field = newValue }
@@ -69,15 +73,22 @@ update action model =
       model
         |> doUpdateField newValue
         |> figureOutSnippetType
-    AddEntry ->
+    AddEntry str ->
       { model
-        | entries = model.entries ++ [makeEntry model]
+        | entries = model.entries ++ [makeEntry str model.currentIndex model.currentSnippetType]
         , currentIndex = model.currentIndex + 1
       }
     DeleteEntry index ->
       { model | entries = List.filter (\t -> t.index /= index) model.entries }
     ChooseSnippetType kind ->
       { model |  currentSnippetType = kind }
+    AddTag index str ->
+      { model | entries = List.map (\entry ->
+        if index == entry.index
+        then { entry | tags = entry.tags ++ [str] }
+        else entry
+        ) model.entries
+      }
 
 renderSnippetType {kind} =
   case kind of
@@ -96,6 +107,9 @@ renderEntry snippet =
   [ text snippet.content
   , text (renderSnippetType snippet)
   , button [ onClick mainMailbox.address (DeleteEntry snippet.index) ] []
+  , input
+    [ onEnter (AddTag snippet.index)] []
+  , div [] (List.map text (snippet.tags))
   ]
 
 sendMessage a =
@@ -127,11 +141,13 @@ doChooseSnippetType a =
   in
     Signal.message mainMailbox.address (ChooseSnippetType kind)
 
--- onEnter : Action -> Attribute
 onEnter action =
-    on "keydown"
-      (customDecoder keyCode is13)
-      (\_ -> Signal.message mainMailbox.address action)
+  on "keydown"
+    valueAndKeyCode
+    (\v -> Signal.message mainMailbox.address (action v))
+
+valueAndKeyCode =
+  object2 (\a b -> b) (customDecoder keyCode is13) targetValue
 
 is13 : Int -> Result String ()
 is13 code =
@@ -145,7 +161,7 @@ view model =
     , onEnter AddEntry
     ] []
   , button
-    [ onClick mainMailbox.address AddEntry ] []
+    [ onClick mainMailbox.address (AddEntry model.field) ] []
   , select
     [ value "Sticky note"
     , on "change" targetValue doChooseSnippetType ]
