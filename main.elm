@@ -6,6 +6,8 @@ import Graphics.Element exposing (..)
 import Signal exposing (..)
 
 import Graphics.Input exposing (dropDown)
+import Json.Decode exposing (customDecoder)
+import Regex exposing (..)
 
 type alias Model =
   { field : String
@@ -37,11 +39,36 @@ makeEntry : Model -> Snippet
 makeEntry {field, currentIndex, currentSnippetType} =
   { content = field, index = currentIndex, snippetType = currentSnippetType}
 
+doUpdateField newValue model =
+  { model | field = newValue }
+
+regexToSnippetType : List (Regex, SnippetType)
+regexToSnippetType =
+  [ (regex "^soundcloud.com", SoundCloud)
+  , (regex "^.*", PlainText)
+  ]
+
+findFirstMatch : String -> List (Regex, SnippetType) -> SnippetType
+findFirstMatch query list =
+  case list of
+    ((regex, snippetType) :: t) ->
+      if contains regex query
+      then snippetType
+      else findFirstMatch query t
+    [] -> PlainText
+
+figureOutSnippetType : Model -> Model
+figureOutSnippetType model =
+  let snippetType = findFirstMatch model.field regexToSnippetType
+  in { model | currentSnippetType = snippetType }
+
 update action model =
   case action of
     NoOp -> model
-    UpdateField field ->
-      { model | field = field }
+    UpdateField newValue ->
+      model
+        |> doUpdateField newValue
+        |> figureOutSnippetType
     AddEntry ->
       { model
         | entries = model.entries ++ [makeEntry model]
@@ -52,8 +79,8 @@ update action model =
     ChooseSnippetType snippetType ->
       { model |  currentSnippetType = snippetType }
 
-renderSnippetType snippet =
-  case snippet.snippetType of
+renderSnippetType {snippetType} =
+  case snippetType of
     PlainText ->
       "this is plaintext"
     StickyNote ->
@@ -74,6 +101,21 @@ renderEntry snippet =
 sendMessage a =
   Signal.message mainMailbox.address (UpdateField a)
 
+snippetTypes : List String
+snippetTypes = List.map toString [PlainText, StickyNote, Markdown, SoundCloud]
+
+snippetTypeOptions : SnippetType -> List Html
+snippetTypeOptions currentSnippetType =
+  let
+    typeAsString = toString currentSnippetType
+    bla = Debug.watch "typeAsString" typeAsString
+  in
+    List.map (\item ->
+      option
+      [ if typeAsString == item then selected True else selected False]
+      [text item]
+    ) snippetTypes
+
 doChooseSnippetType a =
   let
     snippetType = case a of
@@ -85,25 +127,31 @@ doChooseSnippetType a =
   in
     Signal.message mainMailbox.address (ChooseSnippetType snippetType)
 
+-- onEnter : Action -> Attribute
+onEnter action =
+    on "keydown"
+      (customDecoder keyCode is13)
+      (\_ -> Signal.message mainMailbox.address action)
+
+is13 : Int -> Result String ()
+is13 code =
+  if code == 13 then Ok () else Err "not the right key code"
+
 view : Model -> Html
 view model =
-  let
-    a = Debug.watch "model" model
-  in
-    div []
-    [ input
-      [ on "input" targetValue sendMessage
-      ] []
-    , button
-      [ onClick mainMailbox.address AddEntry ] []
-    , select [on "change" targetValue doChooseSnippetType ]
-      [ option [] [ text "Plain text"]
-      , option [] [ text "Sticky note"]
-      , option [] [ text "Markdown"]
-      , option [] [ text "SoundCloud"]
-      ]
-    , div [] (List.map renderEntry model.entries)
-    ]
+  div []
+  [ input
+    [ on "input" targetValue sendMessage
+    , onEnter AddEntry
+    ] []
+  , button
+    [ onClick mainMailbox.address AddEntry ] []
+  , select
+    [ value "Sticky note"
+    , on "change" targetValue doChooseSnippetType ]
+    (snippetTypeOptions model.currentSnippetType)
+  , div [] (List.map renderEntry model.entries)
+  ]
 
 emptyModel =
   { field = "", entries = [], currentIndex = 0, currentSnippetType = PlainText }
