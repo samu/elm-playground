@@ -4,6 +4,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 
+import Snippets.PlainText
+
 import Tags exposing (Tag)
 
 type alias Snippet =
