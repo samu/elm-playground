@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Elm • TodoMVC</title>
+  <script type="text/javascript" src="elm.js"></script>
+  <!-- <script type="text/javascript" src="lib/sound-cloud.js"></script> -->
+  <script src="https://connect.soundcloud.com/sdk/sdk-3.0.0.js"></script>
+  <!-- <link rel="stylesheet" href="style.css"> -->
+</head>
+
+<body>
+</body>
+
+<script type="text/javascript">
+  var main = Elm.fullscreen(Elm.Main);
+  main.ports.embedSoundCloud.subscribe(embedSoundCloud);
+
+  function embedSoundCloud(data) {
+    var id = data[0];
+    var url = data[1];
+    SC.oEmbed('http://soundcloud.com/forss/flickermood', {
+      element: document.getElementById(id)
+    });
+  }
+
+</script>
+
+</html>

@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 
 import Snippets.PlainText
+import Snippets.SoundCloud
 
 import Tags exposing (Tag)
 
@@ -58,4 +59,4 @@ render snippet =
     Markdown ->
       text "this is markdown"
     SoundCloud ->
-      text "this is sound cloud"
+      Snippets.SoundCloud.render snippet

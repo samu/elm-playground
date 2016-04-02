@@ -1,3 +1,5 @@
+-- run it: elm-live Main.elm
+module Main where
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -110,13 +112,14 @@ view model =
     [ on "input" targetValue sendMessage
     , onEnter mainMailbox.address AddEntry
     ] []
-  , button
-    [ onClick mainMailbox.address (AddEntry model.field) ] []
+  , button [ onClick mainMailbox.address (AddEntry model.field) ] [ text "yo" ]
   , select
     [ value "Sticky note"
     , on "change" targetValue doChooseSnippetType ]
     (snippetTypeOptions model.currentSnippetType)
   , div [] (List.map renderEntry model.entries)
+  , button [ onClick interop.address ("bla-123", "le-url") ] [ text "do it" ]
+  , div [ id "bla-123", style [("border", "solid black 1px"), ("height", "100px")] ] []
   ]
 
 emptyModel =
@@ -127,3 +130,8 @@ modelSignal = Signal.foldp update emptyModel mainMailbox.signal
 
 main =
   Signal.map view modelSignal
+
+interop = Signal.mailbox ("", "")
+
+port embedSoundCloud : Signal (String, String)
+port embedSoundCloud = interop.signal
