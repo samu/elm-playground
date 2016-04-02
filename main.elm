@@ -2,25 +2,26 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Graphics.Element exposing (..)
--- import Graphics.Input exposing (..)
 import Signal exposing (..)
+import Tags exposing (renderTagList)
 
 import Graphics.Input exposing (dropDown)
-import Json.Decode exposing (customDecoder, object2, Decoder)
 import Regex exposing (..)
+
+import Snippets exposing
+  ( Snippet
+  , SnippetType (..)
+  , getSnippetTypeByText
+  , initializeSnippet
+  )
+
+import Utils exposing (..)
 
 type alias Model =
   { field : String
   , entries : List Snippet
   , currentIndex : Int
   , currentSnippetType : SnippetType
-  }
-
-type alias Snippet =
-  { content : String
-  , index : Int
-  , kind : SnippetType
-  , tags : List String
   }
 
 type Action
@@ -31,39 +32,12 @@ type Action
   | ChooseSnippetType SnippetType
   | AddTag Int String
 
-type SnippetType
-  = PlainText
-  | StickyNote
-  | Markdown
-  | SoundCloud
-
-makeEntry field currentIndex currentSnippetType =
-  { content = field
-  , index = currentIndex
-  , kind = currentSnippetType
-  , tags = [] }
-
 doUpdateField newValue model =
   { model | field = newValue }
 
-regexToSnippetType : List (Regex, SnippetType)
-regexToSnippetType =
-  [ (regex "^soundcloud.com", SoundCloud)
-  , (regex "^.*", PlainText)
-  ]
-
-findFirstMatch : String -> List (Regex, SnippetType) -> SnippetType
-findFirstMatch query list =
-  case list of
-    ((regex, kind) :: t) ->
-      if contains regex query
-      then kind
-      else findFirstMatch query t
-    [] -> PlainText
-
-figureOutSnippetType : Model -> Model
-figureOutSnippetType model =
-  let kind = findFirstMatch model.field regexToSnippetType
+doUpdateSnippetType : Model -> Model
+doUpdateSnippetType model =
+  let kind = getSnippetTypeByText model.field
   in { model | currentSnippetType = kind }
 
 update action model =
@@ -72,10 +46,10 @@ update action model =
     UpdateField newValue ->
       model
         |> doUpdateField newValue
-        |> figureOutSnippetType
+        |> doUpdateSnippetType
     AddEntry str ->
       { model
-        | entries = model.entries ++ [makeEntry str model.currentIndex model.currentSnippetType]
+        | entries = model.entries ++ [initializeSnippet str model.currentIndex model.currentSnippetType]
         , currentIndex = model.currentIndex + 1
       }
     DeleteEntry index ->
@@ -85,31 +59,19 @@ update action model =
     AddTag index str ->
       { model | entries = List.map (\entry ->
         if index == entry.index
-        then { entry | tags = entry.tags ++ [str] }
+        then { entry | tags = Tags.update (Tags.Add str) entry.tags }
         else entry
         ) model.entries
       }
 
-renderSnippetType {kind} =
-  case kind of
-    PlainText ->
-      "this is plaintext"
-    StickyNote ->
-      "this is sticky note"
-    Markdown ->
-      "this is markdown"
-    SoundCloud ->
-      "this is sound cloud"
-
 renderEntry : Snippet -> Html
 renderEntry snippet =
   div []
-  [ text snippet.content
-  , text (renderSnippetType snippet)
+  [ Snippets.render snippet
   , button [ onClick mainMailbox.address (DeleteEntry snippet.index) ] []
   , input
-    [ onEnter (AddTag snippet.index)] []
-  , div [] (List.map text (snippet.tags))
+    [ onEnter mainMailbox.address (AddTag snippet.index)] []
+  , renderTagList snippet.tags
   ]
 
 sendMessage a =
@@ -141,24 +103,12 @@ doChooseSnippetType a =
   in
     Signal.message mainMailbox.address (ChooseSnippetType kind)
 
-onEnter action =
-  on "keydown"
-    valueAndKeyCode
-    (\v -> Signal.message mainMailbox.address (action v))
-
-valueAndKeyCode =
-  object2 (\a b -> b) (customDecoder keyCode is13) targetValue
-
-is13 : Int -> Result String ()
-is13 code =
-  if code == 13 then Ok () else Err "not the right key code"
-
 view : Model -> Html
 view model =
   div []
   [ input
     [ on "input" targetValue sendMessage
-    , onEnter AddEntry
+    , onEnter mainMailbox.address AddEntry
     ] []
   , button
     [ onClick mainMailbox.address (AddEntry model.field) ] []
