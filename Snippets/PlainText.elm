@@ -1,3 +1,8 @@
 module Snippets.PlainText where
+import Html exposing (..)
 
-bla = "le maintext snippet yeah"
+render snippet =
+  div []
+  [ text "this is just some plain text"
+  , text snippet.content
+  ]

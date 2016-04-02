@@ -27,17 +27,6 @@ initializeSnippet content index kind =
   , kind = kind
   , tags = [] }
 
-renderSnippetType {kind} =
-  case kind of
-    PlainText ->
-      "this is plaintext"
-    StickyNote ->
-      "this is sticky note"
-    Markdown ->
-      "this is markdown"
-    SoundCloud ->
-      "this is sound cloud"
-
 regexToSnippetType : List (Regex, SnippetType)
 regexToSnippetType =
   [ (regex "^soundcloud.com", SoundCloud)
@@ -56,9 +45,17 @@ getSnippetTypeByText' query list =
       else getSnippetTypeByText' query t
     [] -> PlainText
 
+doStuff mo snippet =
+  mo.render snippet
+
 render : Snippet -> Html
 render snippet =
-  div []
-  [ text snippet.content
-  , text (renderSnippetType snippet)
-  ]
+  case snippet.kind of
+    PlainText ->
+      Snippets.PlainText.render snippet
+    StickyNote ->
+      text "this is sticky note"
+    Markdown ->
+      text "this is markdown"
+    SoundCloud ->
+      text "this is sound cloud"
