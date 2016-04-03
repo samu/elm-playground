@@ -11,6 +11,7 @@ import Effects exposing (Effects)
 import StartApp
 import Graphics.Input exposing (dropDown)
 import Regex exposing (..)
+import Http
 
 import Snippets exposing
   ( Snippet
@@ -35,7 +36,7 @@ type Action
   | DeleteEntry Int
   | ChooseSnippetType SnippetType
   | AddTag Int String
-  | PostRender Int
+  | PostRender (String, String)
 
 doUpdateField newValue model =
   { model | field = newValue }
@@ -61,7 +62,7 @@ update action model =
           | entries = model.entries ++ [initializeSnippet str model.currentIndex model.currentSnippetType]
           , currentIndex = model.currentIndex + 1
         }
-      in (model, Task.map PostRender (Task.succeed 3) |> Effects.task)
+      in (model, refreshFx)
     DeleteEntry index ->
       let model = { model | entries = List.filter (\t -> t.index /= index) model.entries }
       in (model, Effects.none)
@@ -77,8 +78,26 @@ update action model =
           ) model.entries
         }
       in (model, Effects.none)
-    PostRender a ->
-      (model, Effects.none)
+    PostRender message ->
+      let a = Debug.log "message" message
+      in (model, Effects.none)
+
+
+
+httpTask : Task.Task Http.Error String
+httpTask =
+  Http.getString "http://localhost:3000/"
+
+
+-- refreshFx : Effects.Effects Action
+-- refreshFx =
+--   httpTask
+--     |> Task.toResult
+--     |> Task.map OnRefresh
+--     |> Effects.task
+
+refreshFx =
+  Task.succeed ("bla", "blubb") |> Task.map PostRender |> Effects.task
 
 renderEntry address snippet =
   div []
@@ -152,3 +171,7 @@ interop = Signal.mailbox ("", "")
 
 port embedSoundCloud : Signal (String, String)
 port embedSoundCloud = interop.signal
+
+port runner : Signal (Task.Task Effects.Never ())
+port runner =
+  app.tasks
