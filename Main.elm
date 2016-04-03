@@ -7,8 +7,8 @@ import Graphics.Element exposing (..)
 import Signal exposing (..)
 import Tags exposing (renderTagList)
 import Task
-import Effects
-import StartApp.Simple exposing (start)
+import Effects exposing (Effects)
+import StartApp
 import Graphics.Input exposing (dropDown)
 import Regex exposing (..)
 
@@ -44,29 +44,38 @@ doUpdateSnippetType model =
   let kind = getSnippetTypeByText model.field
   in { model | currentSnippetType = kind }
 
+update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
-    NoOp -> model
+    NoOp -> (model, Effects.none)
     UpdateField newValue ->
-      model
-        |> doUpdateField newValue
-        |> doUpdateSnippetType
+      let
+        model = model
+          |> doUpdateField newValue
+          |> doUpdateSnippetType
+      in (model, Effects.none)
     AddEntry str ->
-      { model
-        | entries = model.entries ++ [initializeSnippet str model.currentIndex model.currentSnippetType]
-        , currentIndex = model.currentIndex + 1
-      }
+      let
+        model = { model
+          | entries = model.entries ++ [initializeSnippet str model.currentIndex model.currentSnippetType]
+          , currentIndex = model.currentIndex + 1
+        }
+      in (model, Effects.none)
     DeleteEntry index ->
-      { model | entries = List.filter (\t -> t.index /= index) model.entries }
+      let model = { model | entries = List.filter (\t -> t.index /= index) model.entries }
+      in (model, Effects.none)
     ChooseSnippetType kind ->
-      { model |  currentSnippetType = kind }
+      let model = { model |  currentSnippetType = kind }
+      in (model, Effects.none)
     AddTag index str ->
-      { model | entries = List.map (\entry ->
-        if index == entry.index
-        then { entry | tags = Tags.update (Tags.Add str) entry.tags }
-        else entry
-        ) model.entries
-      }
+      let
+        model = { model | entries = List.map (\entry ->
+          if index == entry.index
+          then { entry | tags = Tags.update (Tags.Add str) entry.tags }
+          else entry
+          ) model.entries
+        }
+      in (model, Effects.none)
 
 renderEntry address snippet =
   div []
@@ -125,8 +134,16 @@ view address model =
 emptyModel =
   { field = "", entries = [], currentIndex = 0, currentSnippetType = PlainText }
 
+app =
+  StartApp.start
+    { init = (emptyModel, Effects.none)
+    , inputs = []
+    , update = update
+    , view = view
+  }
+
 main =
-  StartApp.Simple.start { model = emptyModel, update = update, view = view }
+  app.html
 
 interop = Signal.mailbox ("", "")
 
