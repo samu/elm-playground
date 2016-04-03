@@ -46,9 +46,6 @@ getSnippetTypeByText' query list =
       else getSnippetTypeByText' query t
     [] -> PlainText
 
-doStuff mo snippet =
-  mo.render snippet
-
 render : Snippet -> Html
 render snippet =
   case snippet.kind of
