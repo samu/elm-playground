@@ -1,4 +1,4 @@
--- run it: elm-live Main.elm
+-- run it: elm-live Main.elm --output elm.js
 module Main where
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -6,7 +6,9 @@ import Html.Events exposing (..)
 import Graphics.Element exposing (..)
 import Signal exposing (..)
 import Tags exposing (renderTagList)
-
+import Task
+import Effects
+import StartApp.Simple exposing (start)
 import Graphics.Input exposing (dropDown)
 import Regex exposing (..)
 
@@ -66,18 +68,17 @@ update action model =
         ) model.entries
       }
 
-renderEntry : Snippet -> Html
-renderEntry snippet =
+renderEntry address snippet =
   div []
   [ Snippets.render snippet
-  , button [ onClick mainMailbox.address (DeleteEntry snippet.index) ] []
+  , button [ onClick address (DeleteEntry snippet.index) ] []
   , input
-    [ onEnter mainMailbox.address (AddTag snippet.index)] []
+    [ onEnter address (AddTag snippet.index)] []
   , renderTagList snippet.tags
   ]
 
-sendMessage a =
-  Signal.message mainMailbox.address (UpdateField a)
+sendMessage address a =
+  Signal.message address (UpdateField a)
 
 snippetTypes : List String
 snippetTypes = List.map toString [PlainText, StickyNote, Markdown, SoundCloud]
@@ -94,7 +95,7 @@ snippetTypeOptions currentSnippetType =
       [text item]
     ) snippetTypes
 
-doChooseSnippetType a =
+doChooseSnippetType address a =
   let
     kind = case a of
       "PlainText" -> PlainText
@@ -103,21 +104,20 @@ doChooseSnippetType a =
       "SoundCloud" -> SoundCloud
       _ -> PlainText
   in
-    Signal.message mainMailbox.address (ChooseSnippetType kind)
+    Signal.message address (ChooseSnippetType kind)
 
-view : Model -> Html
-view model =
+view address model =
   div []
   [ input
-    [ on "input" targetValue sendMessage
-    , onEnter mainMailbox.address AddEntry
+    [ on "input" targetValue (sendMessage address)
+    , onEnter address AddEntry
     ] []
-  , button [ onClick mainMailbox.address (AddEntry model.field) ] [ text "yo" ]
+  , button [ onClick address (AddEntry model.field) ] [ text "yo" ]
   , select
     [ value "Sticky note"
-    , on "change" targetValue doChooseSnippetType ]
+    , on "change" targetValue (doChooseSnippetType address) ]
     (snippetTypeOptions model.currentSnippetType)
-  , div [] (List.map renderEntry model.entries)
+  , div [] (List.map (renderEntry address) model.entries)
   , button [ onClick interop.address ("bla-123", "le-url") ] [ text "do it" ]
   , div [ id "bla-123", style [("border", "solid black 1px"), ("height", "100px")] ] []
   ]
@@ -125,11 +125,8 @@ view model =
 emptyModel =
   { field = "", entries = [], currentIndex = 0, currentSnippetType = PlainText }
 
-mainMailbox = Signal.mailbox NoOp
-modelSignal = Signal.foldp update emptyModel mainMailbox.signal
-
 main =
-  Signal.map view modelSignal
+  StartApp.Simple.start { model = emptyModel, update = update, view = view }
 
 interop = Signal.mailbox ("", "")
 
