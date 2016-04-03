@@ -35,6 +35,7 @@ type Action
   | DeleteEntry Int
   | ChooseSnippetType SnippetType
   | AddTag Int String
+  | PostRender Int
 
 doUpdateField newValue model =
   { model | field = newValue }
@@ -60,7 +61,7 @@ update action model =
           | entries = model.entries ++ [initializeSnippet str model.currentIndex model.currentSnippetType]
           , currentIndex = model.currentIndex + 1
         }
-      in (model, Effects.none)
+      in (model, Task.map PostRender (Task.succeed 3) |> Effects.task)
     DeleteEntry index ->
       let model = { model | entries = List.filter (\t -> t.index /= index) model.entries }
       in (model, Effects.none)
@@ -76,6 +77,8 @@ update action model =
           ) model.entries
         }
       in (model, Effects.none)
+    PostRender a ->
+      (model, Effects.none)
 
 renderEntry address snippet =
   div []
