@@ -12,6 +12,7 @@ import StartApp
 import Graphics.Input exposing (dropDown)
 import Regex exposing (..)
 import Http
+import Time
 
 import Snippets exposing
   ( Snippet
@@ -58,11 +59,12 @@ update action model =
       in (model, Effects.none)
     AddEntry str ->
       let
+        newSnippet = initializeSnippet str model.currentIndex model.currentSnippetType
         model = { model
-          | entries = model.entries ++ [initializeSnippet str model.currentIndex model.currentSnippetType]
+          | entries = model.entries ++ [newSnippet]
           , currentIndex = model.currentIndex + 1
         }
-      in (model, refreshFx)
+      in (model, refreshFx (toString newSnippet.index, "das"))
     DeleteEntry index ->
       let model = { model | entries = List.filter (\t -> t.index /= index) model.entries }
       in (model, Effects.none)
@@ -79,25 +81,26 @@ update action model =
         }
       in (model, Effects.none)
     PostRender message ->
-      let a = Debug.log "message" message
-      in (model, Effects.none)
+      (model, Effects.none)
 
-
-
-httpTask : Task.Task Http.Error String
-httpTask =
-  Http.getString "http://localhost:3000/"
-
-
--- refreshFx : Effects.Effects Action
--- refreshFx =
+-- httpTask : Task.Task Http.Error String
+-- httpTask =
+--   Http.getString "http://localhost:3000/"
+--
+--
+-- -- refreshFx2 : Effects.Effects Action
+-- refreshFx2 =
 --   httpTask
 --     |> Task.toResult
---     |> Task.map OnRefresh
+--     -- |> Task.map OnRefresh
 --     |> Effects.task
 
-refreshFx =
-  Task.succeed ("bla", "blubb") |> Task.map PostRender |> Effects.task
+
+refreshFx t =
+  Signal.send interop.address t
+  |> Task.map (\n -> t)
+  |> Task.map PostRender
+  |> Effects.task
 
 renderEntry address snippet =
   div []
@@ -149,8 +152,6 @@ view address model =
     , on "change" targetValue (doChooseSnippetType address) ]
     (snippetTypeOptions model.currentSnippetType)
   , div [] (List.map (renderEntry address) model.entries)
-  , button [ onClick interop.address ("bla-123", "le-url") ] [ text "do it" ]
-  , div [ id "bla-123", style [("border", "solid black 1px"), ("height", "100px")] ] []
   ]
 
 emptyModel =
