@@ -22,6 +22,7 @@ import Snippets exposing
   )
 
 import Utils exposing (..)
+import RestApi
 
 type alias Model =
   { field : String
@@ -29,6 +30,7 @@ type alias Model =
   , currentIndex : Int
   , currentSnippetType : SnippetType
   }
+
 
 type Action
   = NoOp
@@ -38,6 +40,7 @@ type Action
   | ChooseSnippetType SnippetType
   | AddTag Int String
   | PostRender (String, String)
+  | ApiCall (Result Http.Error String)
 
 doUpdateField newValue model =
   { model | field = newValue }
@@ -64,7 +67,7 @@ update action model =
           | entries = model.entries ++ [newSnippet]
           , currentIndex = model.currentIndex + 1
         }
-      in (model, refreshFx (toString newSnippet.index, "das"))
+      in (model, invokePostRender (toString newSnippet.index, "das"))
     DeleteEntry index ->
       let model = { model | entries = List.filter (\t -> t.index /= index) model.entries }
       in (model, Effects.none)
@@ -82,25 +85,21 @@ update action model =
       in (model, Effects.none)
     PostRender message ->
       (model, Effects.none)
+    ApiCall result ->
+      let message = Debug.log "result" (Result.withDefault "" result)
+      in (model, Effects.none)
 
--- httpTask : Task.Task Http.Error String
--- httpTask =
---   Http.getString "http://localhost:3000/"
---
---
--- -- refreshFx2 : Effects.Effects Action
--- refreshFx2 =
---   httpTask
---     |> Task.toResult
---     -- |> Task.map OnRefresh
---     |> Effects.task
-
-
-refreshFx t =
+invokePostRender t =
   Signal.send interop.address t
-  |> Task.map (\n -> t)
-  |> Task.map PostRender
-  |> Effects.task
+    |> Task.map (\n -> t)
+    |> Task.map PostRender
+    |> Effects.task
+
+invokeApiCall =
+  Http.getString "http://localhost:3000/"
+    |> Task.toResult
+    |> Task.map ApiCall
+    |> Effects.task
 
 renderEntry address snippet =
   div []
@@ -159,7 +158,7 @@ emptyModel =
 
 app =
   StartApp.start
-    { init = (emptyModel, Effects.none)
+    { init = (emptyModel, invokeApiCall)
     , inputs = []
     , update = update
     , view = view
