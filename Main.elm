@@ -22,7 +22,9 @@ import Snippets exposing
   )
 
 import Utils exposing (..)
-import RestApi
+
+
+-- MODEL --
 
 type alias Model =
   { field : String
@@ -31,6 +33,8 @@ type alias Model =
   , currentSnippetType : SnippetType
   }
 
+
+  -- UPDATE --
 
 type Action
   = NoOp
@@ -42,20 +46,19 @@ type Action
   | PostRender (String, String)
   | ApiCall (Result Http.Error String)
 
-doUpdateField newValue model =
-  { model | field = newValue }
-
-doUpdateSnippetType : Model -> Model
-doUpdateSnippetType model =
-  let kind = getSnippetTypeByText model.field
-  in { model | currentSnippetType = kind }
-
 update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
     NoOp -> (model, Effects.none)
     UpdateField newValue ->
       let
+        doUpdateField newValue model =
+          { model | field = newValue }
+
+        doUpdateSnippetType model =
+          let snippetType = getSnippetTypeByText model.field
+          in { model | currentSnippetType = snippetType }
+
         model = model
           |> doUpdateField newValue
           |> doUpdateSnippetType
@@ -71,8 +74,8 @@ update action model =
     DeleteEntry index ->
       let model = { model | entries = List.filter (\t -> t.index /= index) model.entries }
       in (model, Effects.none)
-    ChooseSnippetType kind ->
-      let model = { model |  currentSnippetType = kind }
+    ChooseSnippetType snippetType ->
+      let model = { model |  currentSnippetType = snippetType }
       in (model, Effects.none)
     AddTag index str ->
       let
@@ -86,8 +89,11 @@ update action model =
     PostRender message ->
       (model, Effects.none)
     ApiCall result ->
-      let message = Debug.log "result" (Result.withDefault "" result)
+      let message = Result.withDefault "" result
       in (model, Effects.none)
+
+
+-- EFFECTS --
 
 invokePostRender t =
   Signal.send interop.address t
@@ -101,57 +107,32 @@ invokeApiCall =
     |> Task.map ApiCall
     |> Effects.task
 
-renderEntry address snippet =
-  div []
-  [ Snippets.render snippet
-  , button [ onClick address (DeleteEntry snippet.index) ] []
-  , input
-    [ onEnter address (AddTag snippet.index)] []
-  , renderTagList snippet.tags
-  ]
 
-sendMessage address a =
-  Signal.message address (UpdateField a)
-
-snippetTypes : List String
-snippetTypes = List.map toString [PlainText, StickyNote, Markdown, SoundCloud]
-
-snippetTypeOptions : SnippetType -> List Html
-snippetTypeOptions currentSnippetType =
-  let
-    typeAsString = toString currentSnippetType
-    bla = Debug.watch "typeAsString" typeAsString
-  in
-    List.map (\item ->
-      option
-      [ if typeAsString == item then selected True else selected False]
-      [text item]
-    ) snippetTypes
-
-doChooseSnippetType address a =
-  let
-    kind = case a of
-      "PlainText" -> PlainText
-      "Sticky note" -> StickyNote
-      "Markdown" -> Markdown
-      "SoundCloud" -> SoundCloud
-      _ -> PlainText
-  in
-    Signal.message address (ChooseSnippetType kind)
+-- VIEW --
 
 view address model =
-  div []
-  [ input
-    [ on "input" targetValue (sendMessage address)
-    , onEnter address AddEntry
-    ] []
-  , button [ onClick address (AddEntry model.field) ] [ text "yo" ]
-  , select
-    [ value "Sticky note"
-    , on "change" targetValue (doChooseSnippetType address) ]
-    (snippetTypeOptions model.currentSnippetType)
-  , div [] (List.map (renderEntry address) model.entries)
-  ]
+  let
+    renderEntry address snippet =
+      div []
+      [ Snippets.render snippet
+      , button [ onClick address (DeleteEntry snippet.index) ] []
+      , input
+      [ onEnter address (AddTag snippet.index)] []
+      , renderTagList snippet.tags
+      ]
+  in
+    div []
+    [ input
+      [ on "input" targetValue (UpdateField >> (Signal.message address))
+      , onEnter address AddEntry
+      ] []
+    , button [ onClick address (AddEntry model.field) ] [ text "yo" ]
+    , dropdown address model
+    , div [] (List.map (renderEntry address) model.entries)
+    ]
+
+
+-- START --
 
 emptyModel =
   { field = "", entries = [], currentIndex = 0, currentSnippetType = PlainText }
@@ -169,9 +150,45 @@ main =
 
 interop = Signal.mailbox ("", "")
 
+
+-- PORTS --
+
 port embedSoundCloud : Signal (String, String)
 port embedSoundCloud = interop.signal
 
 port runner : Signal (Task.Task Effects.Never ())
 port runner =
   app.tasks
+
+
+-- DROPDOWN --
+
+snippetTypes : List String
+snippetTypes = List.map toString [PlainText, StickyNote, Markdown, SoundCloud]
+
+snippetTypeOptions : SnippetType -> List Html
+snippetTypeOptions currentSnippetType =
+  let
+    typeAsString = toString currentSnippetType
+    bla = Debug.watch "typeAsString" typeAsString
+  in
+    List.map (\item ->
+      option
+      [ if typeAsString == item then selected True else selected False]
+      [text item]
+    ) snippetTypes
+
+
+stringToSnippetType string =
+  case string of
+    "PlainText" -> PlainText
+    "Sticky note" -> StickyNote
+    "Markdown" -> Markdown
+    "SoundCloud" -> SoundCloud
+    _ -> PlainText
+
+dropdown address model =
+  select
+    [ value "Sticky note"
+    , on "change" targetValue (Signal.message address << ChooseSnippetType << stringToSnippetType) ]
+    (snippetTypeOptions model.currentSnippetType)
