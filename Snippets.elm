@@ -26,7 +26,8 @@ initializeSnippet content index kind =
   { content = content
   , index = index
   , kind = kind
-  , tags = [] }
+  , tags = []
+  }
 
 regexToSnippetType : List (Regex, SnippetType)
 regexToSnippetType =
