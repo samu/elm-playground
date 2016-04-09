@@ -6,6 +6,7 @@ import Html.Events exposing (..)
 import Graphics.Element exposing (..)
 import Signal exposing (..)
 import Tags exposing (renderTagList)
+import NewTags
 import Task
 import Effects exposing (Effects)
 import StartApp
@@ -43,6 +44,7 @@ type Action
   | DeleteEntry Int
   | ChooseSnippetType SnippetType
   | AddTag Int String
+  | DeleteTag Int
   | PostRender (String, String)
   | ApiCall (Result Http.Error String)
 
@@ -86,6 +88,8 @@ update action model =
           ) model.entries
         }
       in (model, Effects.none)
+    DeleteTag index ->
+      (model, Effects.none)
     PostRender message ->
       (model, Effects.none)
     ApiCall result ->
@@ -143,7 +147,7 @@ app =
     , inputs = []
     , update = update
     , view = view
-  }
+    }
 
 main =
   app.html

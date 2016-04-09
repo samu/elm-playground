@@ -7,14 +7,27 @@
   <script type="text/javascript" src="elm.js"></script>
   <!-- <script type="text/javascript" src="lib/sound-cloud.js"></script> -->
   <script src="https://connect.soundcloud.com/sdk/sdk-3.0.0.js"></script>
-  <!-- <link rel="stylesheet" href="style.css"> -->
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 </head>
 
 <body>
+  <div id="main"></div>
+  <br>
+  <div id="tags"></div>
 </body>
 
 <script type="text/javascript">
-  var main = Elm.fullscreen(Elm.Main);
+  // var main = Elm.fullscreen(Elm.Main);
+
+  function embed(id, program) {
+    Elm.embed(program, document.getElementById(id));
+  }
+
+  embed("main", Elm.Main);
+  embed("tags", Elm.NewTags);
+
   main.ports.embedSoundCloud.subscribe(embedSoundCloud);
   function embedSoundCloud(data) {
     var id = data[0];
