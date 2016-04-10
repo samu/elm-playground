@@ -26,7 +26,7 @@
   }
 
   embed("main", Elm.Main);
-  embed("tags", Elm.NewTags);
+  embed("tags", Elm.Tags);
 
   main.ports.embedSoundCloud.subscribe(embedSoundCloud);
   function embedSoundCloud(data) {

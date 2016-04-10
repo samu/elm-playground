@@ -5,8 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Graphics.Element exposing (..)
 import Signal exposing (..)
--- import Tags exposing (renderTagList)
-import NewTags as Tags
+import Tags
 import Task
 import Effects exposing (Effects)
 import StartApp
@@ -45,8 +44,6 @@ type Action
   | AddEntry String
   | DeleteEntry Int
   | ChooseSnippetType SnippetType
-  -- | AddTag Int String
-  -- | DeleteTag Int
   | UpdateTag ID Tags.Action
   | PostRender (String, String)
   | ApiCall (Result Http.Error String)
@@ -91,20 +88,6 @@ update action model =
           ) model.entries
         }
       in (model, Effects.none)
-
-
-    -- AddTag index str ->
-      -- let
-      --   model = { model | entries = List.map (\entry ->
-      --     if index == entry.index
-      --     then { entry | tags = Tags.update (Tags.Add str) entry.tags }
-      --     else entry
-      --     ) model.entries
-      --   }
-      -- in (model, Effects.none)
-      -- (model, Effects.none)
-    -- DeleteTag index ->
-    --   (model, Effects.none)
     PostRender message ->
       (model, Effects.none)
     ApiCall result ->

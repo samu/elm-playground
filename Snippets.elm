@@ -7,14 +7,13 @@ import Html.Events exposing (..)
 import Snippets.PlainText
 import Snippets.SoundCloud
 
--- import Tags exposing (Tag)
-import NewTags exposing (Tag)
+import Tags
 
 type alias Snippet =
   { content : String
   , index : Int
   , kind : SnippetType
-  , tags : NewTags.Model
+  , tags : Tags.Model
   }
 
 type SnippetType
@@ -28,7 +27,7 @@ initializeSnippet content index kind =
   { content = content
   , index = index
   , kind = kind
-  , tags = NewTags.initializeTags
+  , tags = Tags.initializeTags
   }
 
 regexToSnippetType : List (Regex, SnippetType)
