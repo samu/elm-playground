@@ -33,20 +33,21 @@ type alias Tag =
   , text : String
   }
 
+type alias Model = List Tag
 
-view : List Tag -> Html
-view tags =
+view : Signal.Address Action -> Model -> Html
+view address model =
   let removeIcon = span [ class "glyphicon glyphicon-remove" ] []
       removeButton tag = a [ href "#", onClick mailbox.address (Delete tag) ] [ removeIcon ]
       print tag = span [ class "label label-info" ] [ text (tag.text ++ "  "), removeButton tag ]
-  in  div [] ((List.map print (tags)))
+  in  div [] ((List.map print (model)))
 
 type Action
   = NoOp
   | Add Tag
   | Delete Tag
 
-update : Action -> List Tag -> List Tag
+update : Action -> Model -> Model
 update action model =
   case action of
     NoOp -> model
@@ -60,7 +61,7 @@ defaultData =
   ]
 
 main =
-  Signal.map view model
+  Signal.map (view mailbox.address) model
 
 model = Signal.foldp update defaultData mailbox.signal
 
