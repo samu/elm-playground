@@ -33,6 +33,7 @@ type alias Model =
   , entries : List Snippet
   , currentId : ID
   , currentSnippetType : SnippetType
+  , query : String
   }
 
 
@@ -47,6 +48,7 @@ type Action
   | UpdateTag ID Tags.Action
   | PostRender (String, String)
   | ApiCall (Result Http.Error String)
+  | Search String
 
 update : Action -> Model -> ( Model, Effects Action )
 update action model =
@@ -93,6 +95,9 @@ update action model =
     ApiCall result ->
       let message = Result.withDefault "" result
       in (model, Effects.none)
+    Search query ->
+      let model = { model | query = query }
+      in (model, Effects.none)
 
 
 -- EFFECTS --
@@ -115,6 +120,8 @@ invokeApiCall =
 view : Signal.Address Action -> Model -> Html
 view address model =
   let
+    query = regex (".*" ++ model.query ++ ".*")
+    filteredEntries = List.filter (\e -> contains query e.content) model.entries
     renderEntry address snippet =
       div []
       [ Snippets.render snippet
@@ -130,7 +137,8 @@ view address model =
       ] []
     , button [ onClick address (AddEntry model.field) ] [ text "yo" ]
     , dropdown address model
-    , div [] (List.map (renderEntry address) model.entries)
+    , input [ on "input" targetValue  (Search >> (Signal.message address))] []
+    , div [] (List.map (renderEntry address) filteredEntries)
     ]
 
 
@@ -138,7 +146,7 @@ view address model =
 
 emptyModel : Model
 emptyModel =
-  { field = "", entries = [], currentId = 0, currentSnippetType = PlainText }
+  { field = "", entries = [], currentId = 0, currentSnippetType = PlainText, query = "" }
 
 app =
   StartApp.start
