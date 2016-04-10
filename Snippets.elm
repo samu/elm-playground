@@ -29,7 +29,7 @@ initializeSnippet content id kind =
   { content = content
   , id = id
   , kind = kind
-  , tags = DynamicList.initialize
+  , tags = DynamicList.initialize []
   }
 
 regexToSnippetType : List (Regex, SnippetType)

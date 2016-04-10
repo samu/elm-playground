@@ -5,7 +5,8 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Graphics.Element exposing (..)
 import Signal exposing (..)
-import Tags
+import Tags exposing (Tag)
+import DynamicList
 import Task
 import Effects exposing (Effects)
 import StartApp
@@ -46,7 +47,7 @@ type Action
   | AddEntry String
   | DeleteEntry Int
   | ChooseSnippetType SnippetType
-  | UpdateTag ID Tags.Action
+  | UpdateTag ID (DynamicList.Action Tag)
   | PostRender (String, String)
   | ApiCall (Result Http.Error String)
   | Search String
@@ -86,7 +87,7 @@ update action model =
       let
         model = { model | entries = List.map (\entry ->
           if id == entry.id
-          then { entry | tags = Tags.update action entry.tags }
+          then { entry | tags = DynamicList.update action entry.tags }
           else entry
           ) model.entries
         }
@@ -127,8 +128,8 @@ view address model =
       div []
       [ Snippets.render snippet
       , button [ onClick address (DeleteEntry snippet.id) ] []
-      , input [ onEnter address (\text -> (UpdateTag snippet.id (Tags.Add text))) ] []
-      , Tags.view (Signal.forwardTo address (UpdateTag snippet.id)) snippet.tags
+      , input [ onEnter address (\text -> (UpdateTag snippet.id (DynamicList.Add (Tags.initialize text)))) ] []
+      , DynamicList.view Tags.render (Signal.forwardTo address (UpdateTag snippet.id)) snippet.tags
       ]
   in
     div []
