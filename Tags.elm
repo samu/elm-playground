@@ -28,7 +28,7 @@ type alias Tag =
   }
 
 type alias Model =
-  { currentIndex : Int
+  { currentId : Int
   , tags : List Tag
   }
 
@@ -49,9 +49,9 @@ update action model =
   case action of
     NoOp -> model
     Add text ->
-      let updateCurrentIndex model = { model | currentIndex = model.currentIndex + 1 }
-          updateTags model = { model | tags = model.tags ++ [ initializeTag model.currentIndex text ]}
-      in  model |> updateCurrentIndex |> updateTags
+      let updateCurrentId model = { model | currentId = model.currentId + 1 }
+          updateTags model = { model | tags = model.tags ++ [ initializeTag model.currentId text ]}
+      in  model |> updateCurrentId |> updateTags
     Delete id ->
       let model = { model | tags = filter (\n -> n.id /= id) model.tags }
       in  model
@@ -60,11 +60,11 @@ initializeTag : Int -> String -> Tag
 initializeTag id text = { id = id, text = text}
 
 initializeTags : Model
-initializeTags = { currentIndex = 0, tags = []}
+initializeTags = { currentId = 0, tags = []}
 
 defaultData : Model
 defaultData =
-  { currentIndex = 0
+  { currentId = 0
   , tags =  [ {id = 0, text = "abc"}
             , {id = 1, text = "bla"}
     ]

@@ -11,7 +11,7 @@ import Tags
 
 type alias Snippet =
   { content : String
-  , index : Int
+  , id : Int
   , kind : SnippetType
   , tags : Tags.Model
   }
@@ -23,9 +23,9 @@ type SnippetType
   | SoundCloud
 
 initializeSnippet : String -> Int -> SnippetType -> Snippet
-initializeSnippet content index kind =
+initializeSnippet content id kind =
   { content = content
-  , index = index
+  , id = id
   , kind = kind
   , tags = Tags.initializeTags
   }

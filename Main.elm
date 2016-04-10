@@ -26,17 +26,17 @@ import Utils exposing (..)
 
 -- MODEL --
 
+type alias ID = Int
+
 type alias Model =
   { field : String
   , entries : List Snippet
-  , currentIndex : Int
+  , currentId : ID
   , currentSnippetType : SnippetType
   }
 
 
   -- UPDATE --
-
-type alias ID = Int
 
 type Action
   = NoOp
@@ -67,22 +67,22 @@ update action model =
       in (model, Effects.none)
     AddEntry str ->
       let
-        newSnippet = initializeSnippet str model.currentIndex model.currentSnippetType
+        newSnippet = initializeSnippet str model.currentId model.currentSnippetType
         model = { model
           | entries = model.entries ++ [newSnippet]
-          , currentIndex = model.currentIndex + 1
+          , currentId = model.currentId + 1
         }
-      in (model, invokePostRender (toString newSnippet.index, "das"))
-    DeleteEntry index ->
-      let model = { model | entries = List.filter (\t -> t.index /= index) model.entries }
+      in (model, invokePostRender (toString newSnippet.id, "das"))
+    DeleteEntry id ->
+      let model = { model | entries = List.filter (\t -> t.id /= id) model.entries }
       in (model, Effects.none)
     ChooseSnippetType snippetType ->
       let model = { model |  currentSnippetType = snippetType }
       in (model, Effects.none)
-    UpdateTag index action ->
+    UpdateTag id action ->
       let
         model = { model | entries = List.map (\entry ->
-          if index == entry.index
+          if id == entry.id
           then { entry | tags = Tags.update action entry.tags }
           else entry
           ) model.entries
@@ -118,9 +118,9 @@ view address model =
     renderEntry address snippet =
       div []
       [ Snippets.render snippet
-      , button [ onClick address (DeleteEntry snippet.index) ] []
-      , input [ onEnter address (\text -> (UpdateTag snippet.index (Tags.Add text))) ] []
-      , Tags.view (Signal.forwardTo address (UpdateTag snippet.index)) snippet.tags
+      , button [ onClick address (DeleteEntry snippet.id) ] []
+      , input [ onEnter address (\text -> (UpdateTag snippet.id (Tags.Add text))) ] []
+      , Tags.view (Signal.forwardTo address (UpdateTag snippet.id)) snippet.tags
       ]
   in
     div []
@@ -138,7 +138,7 @@ view address model =
 
 emptyModel : Model
 emptyModel =
-  { field = "", entries = [], currentIndex = 0, currentSnippetType = PlainText }
+  { field = "", entries = [], currentId = 0, currentSnippetType = PlainText }
 
 app =
   StartApp.start
