@@ -14,7 +14,7 @@ type alias Snippet =
   { content : String
   , index : Int
   , kind : SnippetType
-  , tags : List Tag
+  , tags : NewTags.Model
   }
 
 type SnippetType
@@ -23,11 +23,12 @@ type SnippetType
   | Markdown
   | SoundCloud
 
+initializeSnippet : String -> Int -> SnippetType -> Snippet
 initializeSnippet content index kind =
   { content = content
   , index = index
   , kind = kind
-  , tags = []
+  , tags = NewTags.initializeTags
   }
 
 regexToSnippetType : List (Regex, SnippetType)

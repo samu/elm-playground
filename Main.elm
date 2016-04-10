@@ -90,8 +90,9 @@ update action model =
           else entry
           ) model.entries
         }
-        a = Debug.log "action" action
       in (model, Effects.none)
+
+
     -- AddTag index str ->
       -- let
       --   model = { model | entries = List.map (\entry ->
