@@ -22,11 +22,11 @@
   // var main = Elm.fullscreen(Elm.Main);
 
   function embed(id, program) {
-    Elm.embed(program, document.getElementById(id));
+    return Elm.embed(program, document.getElementById(id));
   }
 
-  embed("main", Elm.Main);
-  embed("dynamicList", Elm.DynamicList);
+  var main = embed("main", Elm.Main);
+  var dynamicList = embed("dynamicList", Elm.DynamicList);
 
   main.ports.embedSoundCloud.subscribe(embedSoundCloud);
   function embedSoundCloud(data) {
