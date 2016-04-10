@@ -48,6 +48,11 @@ update action model =
       let model = { model | entries = filter (\n -> n.id /= id) model.entries }
       in  model
 
+initialize : List (Entry a) -> DynamicList a
+initialize list =
+  { currentId = 0
+  , entries = list
+  }
 
 defaultData : DynamicList String
 defaultData =

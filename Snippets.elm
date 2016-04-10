@@ -9,11 +9,13 @@ import Snippets.SoundCloud
 
 import Tags
 
+import DynamicList
+
 type alias Snippet =
   { content : String
   , id : Int
   , kind : SnippetType
-  , tags : Tags.Model
+  , tags : DynamicList.DynamicList Tags.Tag
   }
 
 type SnippetType
@@ -27,7 +29,7 @@ initializeSnippet content id kind =
   { content = content
   , id = id
   , kind = kind
-  , tags = Tags.initializeTags
+  , tags = DynamicList.initialize
   }
 
 regexToSnippetType : List (Regex, SnippetType)
