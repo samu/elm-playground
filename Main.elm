@@ -129,7 +129,7 @@ view address model =
       [ Snippets.render snippet
       , button [ onClick address (DeleteEntry snippet.id) ] []
       , input [ onEnter address (\text -> (UpdateTag snippet.id (DynamicList.Add (Tags.initialize text)))) ] []
-      , DynamicList.view Tags.render (Signal.forwardTo address (UpdateTag snippet.id)) snippet.tags
+      , Tags.view (Signal.forwardTo address (UpdateTag snippet.id)) snippet.tags
       ]
   in
     div []

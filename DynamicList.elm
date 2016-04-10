@@ -6,6 +6,9 @@ import Html.Events exposing (onClick)
 import List exposing (filter)
 import Debug
 
+
+-- MODEL --
+
 type alias Entry a = { id : Int, item : a }
 
 type alias DynamicList a =
@@ -13,22 +16,14 @@ type alias DynamicList a =
   , entries : List (Entry a)
   }
 
-removeIcon : Html
-removeIcon = span [ class "glyphicon glyphicon-remove" ] []
+initialize : List (Entry a) -> DynamicList a
+initialize list =
+  { currentId = 0
+  , entries = list
+  }
 
-action : Entry a -> Signal.Address (Action a) -> Html.Attribute
-action entry address = onClick address (Delete entry.id)
 
-removeButton : Html.Attribute -> Html
-removeButton action = a [ href "#", action ] [ removeIcon ]
-
-renderEntryDefault : (Entry a -> Html) -> Signal.Address (Action a) -> Entry a -> Html
-renderEntryDefault render address entry =
-  span [ class "label label-info" ] [ render entry, removeButton (action entry address) ]
-
-view : (Entry a -> Html) -> Signal.Address (Action a) -> DynamicList a -> Html
-view render address model =
-  div [] (List.map (renderEntryDefault render address) model.entries)
+-- UPDATE --
 
 type Action a
   = NoOp
@@ -48,11 +43,34 @@ update action model =
       let model = { model | entries = filter (\n -> n.id /= id) model.entries }
       in  model
 
-initialize : List (Entry a) -> DynamicList a
-initialize list =
-  { currentId = 0
-  , entries = list
-  }
+
+-- VIEW --
+
+view : Signal.Address (Action String) -> DynamicList String -> Html
+view address model =
+  let renderTag address entry =
+        span
+          [ class "label label-info" ]
+          [ text entry.item, removeButton (action entry address) ]
+  in div [] (List.map (renderTag address) model.entries)
+
+
+-- HELPERS --
+
+action : Entry a -> Signal.Address (Action a) -> Html.Attribute
+action entry address = onClick address (Delete entry.id)
+
+removeIcon : Html
+removeIcon = span [ class "glyphicon glyphicon-remove" ] []
+
+removeButton : Html.Attribute -> Html
+removeButton action = a [ href "#", action ] [ removeIcon ]
+
+
+-- START --
+
+main =
+  Signal.map (view mailbox.address) model
 
 defaultData : DynamicList String
 defaultData =
@@ -61,12 +79,6 @@ defaultData =
                , { id = 1, item = "two"}
                ]
   }
-
-myRender : Entry String -> Html
-myRender entry = text entry.item
-
-main =
-  Signal.map (view myRender mailbox.address) model
 
 model = Signal.foldp update defaultData mailbox.signal
 
