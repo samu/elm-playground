@@ -7,7 +7,8 @@ import Html.Events exposing (..)
 import Snippets.PlainText
 import Snippets.SoundCloud
 
-import Tags exposing (Tag)
+-- import Tags exposing (Tag)
+import NewTags exposing (Tag)
 
 type alias Snippet =
   { content : String

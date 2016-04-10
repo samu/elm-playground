@@ -5,8 +5,8 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Graphics.Element exposing (..)
 import Signal exposing (..)
-import Tags exposing (renderTagList)
-import NewTags
+-- import Tags exposing (renderTagList)
+import NewTags as Tags
 import Task
 import Effects exposing (Effects)
 import StartApp
@@ -37,14 +37,17 @@ type alias Model =
 
   -- UPDATE --
 
+type alias ID = Int
+
 type Action
   = NoOp
   | UpdateField String
   | AddEntry String
   | DeleteEntry Int
   | ChooseSnippetType SnippetType
-  | AddTag Int String
-  | DeleteTag Int
+  -- | AddTag Int String
+  -- | DeleteTag Int
+  | UpdateTag ID Tags.Action
   | PostRender (String, String)
   | ApiCall (Result Http.Error String)
 
@@ -79,17 +82,28 @@ update action model =
     ChooseSnippetType snippetType ->
       let model = { model |  currentSnippetType = snippetType }
       in (model, Effects.none)
-    AddTag index str ->
+    UpdateTag index action ->
       let
         model = { model | entries = List.map (\entry ->
           if index == entry.index
-          then { entry | tags = Tags.update (Tags.Add str) entry.tags }
+          then { entry | tags = Tags.update action entry.tags }
           else entry
           ) model.entries
         }
+        a = Debug.log "action" action
       in (model, Effects.none)
-    DeleteTag index ->
-      (model, Effects.none)
+    -- AddTag index str ->
+      -- let
+      --   model = { model | entries = List.map (\entry ->
+      --     if index == entry.index
+      --     then { entry | tags = Tags.update (Tags.Add str) entry.tags }
+      --     else entry
+      --     ) model.entries
+      --   }
+      -- in (model, Effects.none)
+      -- (model, Effects.none)
+    -- DeleteTag index ->
+    --   (model, Effects.none)
     PostRender message ->
       (model, Effects.none)
     ApiCall result ->
@@ -114,15 +128,15 @@ invokeApiCall =
 
 -- VIEW --
 
+view : Signal.Address Action -> Model -> Html
 view address model =
   let
     renderEntry address snippet =
       div []
       [ Snippets.render snippet
       , button [ onClick address (DeleteEntry snippet.index) ] []
-      , input
-      [ onEnter address (AddTag snippet.index)] []
-      , renderTagList snippet.tags
+      , input [ onEnter address (\n -> (UpdateTag snippet.index (Tags.Add {id = 0, text = n}))) ] []
+      , Tags.view (Signal.forwardTo address (UpdateTag snippet.index)) snippet.tags
       ]
   in
     div []
@@ -138,6 +152,7 @@ view address model =
 
 -- START --
 
+emptyModel : Model
 emptyModel =
   { field = "", entries = [], currentIndex = 0, currentSnippetType = PlainText }
 

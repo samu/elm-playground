@@ -38,9 +38,9 @@ type alias Model = List Tag
 view : Signal.Address Action -> Model -> Html
 view address model =
   let removeIcon = span [ class "glyphicon glyphicon-remove" ] []
-      removeButton tag = a [ href "#", onClick mailbox.address (Delete tag) ] [ removeIcon ]
+      removeButton tag = a [ href "#", onClick address (Delete tag) ] [ removeIcon ]
       print tag = span [ class "label label-info" ] [ text (tag.text ++ "  "), removeButton tag ]
-  in  div [] ((List.map print (model)))
+  in  div [] ((List.map print (Debug.log "model" model)))
 
 type Action
   = NoOp
@@ -52,7 +52,9 @@ update action model =
   case action of
     NoOp -> model
     Add tag -> model ++ [tag]
-    Delete tag -> filter (\n -> n.id /= tag.id) model
+    Delete tag ->
+      let a = Debug.log "tag" tag
+      in  filter (\n -> n.id /= tag.id) model
 
 
 defaultData =
