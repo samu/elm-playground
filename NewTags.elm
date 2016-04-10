@@ -41,33 +41,34 @@ type alias Model =
 view : Signal.Address Action -> Model -> Html
 view address model =
   let removeIcon = span [ class "glyphicon glyphicon-remove" ] []
-      removeButton tag = a [ href "#", onClick address (Delete tag) ] [ removeIcon ]
+      removeButton tag = a [ href "#", onClick address (Delete tag.id) ] [ removeIcon ]
       print tag = span [ class "label label-info" ] [ text (tag.text ++ "  "), removeButton tag ]
-  in  div [] ((List.map print (Debug.log "model" model.tags)))
+  in  div [] (List.map print model.tags)
 
 type Action
   = NoOp
-  | Add Tag
-  | Delete Tag
+  | Add String
+  | Delete Int
 
 update : Action -> Model -> Model
 update action model =
   case action of
     NoOp -> model
-    Add tag ->
-      let model = { model
-        | currentIndex = model.currentIndex + 1
-        , tags = model.tags ++ [tag]
-        }
+    Add text ->
+      let updateCurrentIndex model = { model | currentIndex = model.currentIndex + 1 }
+          updateTags model = { model | tags = model.tags ++ [ initializeTag model.currentIndex text ]}
+      in  model |> updateCurrentIndex |> updateTags
+    Delete id ->
+      let model = { model | tags = filter (\n -> n.id /= id) model.tags }
       in  model
-    Delete tag ->
-      let model = { model | tags = filter (\n -> n.id /= tag.id) model.tags }
-      in  model
+
+initializeTag : Int -> String -> Tag
+initializeTag id text = { id = id, text = text}
 
 initializeTags : Model
-initializeTags =
-  { currentIndex = 0, tags = []}
+initializeTags = { currentIndex = 0, tags = []}
 
+defaultData : Model
 defaultData =
   { currentIndex = 0
   , tags =  [ {id = 0, text = "abc"}

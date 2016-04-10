@@ -136,7 +136,7 @@ view address model =
       div []
       [ Snippets.render snippet
       , button [ onClick address (DeleteEntry snippet.index) ] []
-      , input [ onEnter address (\n -> (UpdateTag snippet.index (Tags.Add {id = 0, text = n}))) ] []
+      , input [ onEnter address (\text -> (UpdateTag snippet.index (Tags.Add text))) ] []
       , Tags.view (Signal.forwardTo address (UpdateTag snippet.index)) snippet.tags
       ]
   in
