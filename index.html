@@ -16,6 +16,8 @@
   <div id="main"></div>
   <br>
   <div id="tags"></div>
+  <br>
+  <div id="dynamicList"></div>
 </body>
 
 <script type="text/javascript">
@@ -27,6 +29,7 @@
 
   embed("main", Elm.Main);
   embed("tags", Elm.Tags);
+  embed("dynamicList", Elm.DynamicList);
 
   main.ports.embedSoundCloud.subscribe(embedSoundCloud);
   function embedSoundCloud(data) {
