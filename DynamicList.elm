@@ -9,14 +9,14 @@ import Debug
 
 -- MODEL --
 
-type alias Entry a = { id : Int, item : a }
+type alias Indexed a = { a | id : Int }
 
 type alias DynamicList a =
   { currentId : Int
-  , entries : List (Entry a)
+  , entries : List (Indexed a)
   }
 
-initialize : List (Entry a) -> DynamicList a
+initialize : List (Indexed a) -> DynamicList a
 initialize list =
   { currentId = 0
   , entries = list
@@ -27,16 +27,16 @@ initialize list =
 
 type Action a
   = NoOp
-  | Add a
+  | Add (Indexed a)
   | Delete Int
 
-update : Action a -> DynamicList a -> DynamicList a
+update : Action (Indexed a) -> DynamicList (Indexed a) -> DynamicList (Indexed a)
 update action model =
   case action of
     NoOp -> model
     Add entry ->
       let updateCurrentId model = { model | currentId = model.currentId + 1 }
-          createEntry entry = { id = model.currentId, item = entry }
+          createEntry entry = { entry | id = model.currentId }
           addEntry model = { model | entries = model.entries ++ [createEntry entry]}
       in  model |> updateCurrentId |> addEntry
     Delete id ->
@@ -44,20 +44,9 @@ update action model =
       in  model
 
 
--- VIEW --
-
-view : Signal.Address (Action String) -> DynamicList String -> Html
-view address model =
-  let renderTag address entry =
-        span
-          [ class "label label-info" ]
-          [ text entry.item, removeButton (action entry address) ]
-  in div [] (List.map (renderTag address) model.entries)
-
-
 -- HELPERS --
 
-action : Entry a -> Signal.Address (Action a) -> Html.Attribute
+action : Indexed a -> Signal.Address (Action a) -> Html.Attribute
 action entry address = onClick address (Delete entry.id)
 
 removeIcon : Html
@@ -69,16 +58,37 @@ removeButton action = a [ href "#", action ] [ removeIcon ]
 
 -- START --
 
+type alias Thing = Indexed { item : String }
+
+view : Signal.Address (Action Thing) -> DynamicList Thing -> Html
+view address model =
+  let renderTag address entry =
+        span
+          [ class "label label-info" ]
+          [ text entry.item, removeButton (action entry address) ]
+  in div [] (List.map (renderTag address) model.entries)
+
+createThing : Int -> String -> Thing
+createThing id item =
+  { id = id
+  , item = item
+  }
+
 main =
   Signal.map (view mailbox.address) model
 
-defaultData : DynamicList String
+defaultData : DynamicList Thing
 defaultData =
   { currentId = 0
-  , entries =  [ { id = 0, item = "one"}
-               , { id = 1, item = "two"}
-               ]
+  , entries =  [ createThing 0 "hello", createThing 1 "yo", createThing 2 "blaub" ]
   }
+
+-- hello : Thing
+-- hello = createThing "hello"
+--
+-- doStuff : DynamicList Thing -> DynamicList Thing
+-- doStuff data =
+--   update (Add hello) data
 
 model = Signal.foldp update defaultData mailbox.signal
 
