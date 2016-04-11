@@ -27,7 +27,7 @@ initialize list =
 
 type Action a
   = NoOp
-  | Add (Indexed a)
+  | Add a
   | Delete Int
 
 update : Action (Indexed a) -> DynamicList (Indexed a) -> DynamicList (Indexed a)
@@ -68,28 +68,19 @@ view address model =
           [ text entry.item, removeButton (action entry address) ]
   in div [] (List.map (renderTag address) model.entries)
 
-createThing : Int -> String -> Thing
-createThing id item =
-  { id = id
-  , item = item
-  }
-
 main =
   Signal.map (view mailbox.address) model
 
 defaultData : DynamicList Thing
-defaultData =
-  { currentId = 0
-  , entries =  [ createThing 0 "hello", createThing 1 "yo", createThing 2 "blaub" ]
-  }
+defaultData = { currentId = 0 , entries = [] }
 
--- hello : Thing
--- hello = createThing "hello"
---
--- doStuff : DynamicList Thing -> DynamicList Thing
--- doStuff data =
---   update (Add hello) data
+add : String -> (DynamicList Thing -> DynamicList Thing)
+add name = update (Add ({ id = 0 , item = name }))
 
-model = Signal.foldp update defaultData mailbox.signal
+doStuff : DynamicList Thing -> DynamicList Thing
+doStuff data =
+  data |> add "hey" |> add "yes" |> add "it" |> add "works"
+
+model = Signal.foldp update (doStuff defaultData) mailbox.signal
 
 mailbox = Signal.mailbox NoOp
