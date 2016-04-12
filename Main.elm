@@ -47,7 +47,7 @@ type Action
   | AddEntry String
   | DeleteEntry Int
   | ChooseSnippetType SnippetType
-  | UpdateTag ID (DynamicList.Action Tag)
+  -- | UpdateTag ID (DynamicList.Action Tag)
   | PostRender (String, String)
   | ApiCall (Result Http.Error String)
   | Search String
@@ -83,15 +83,15 @@ update action model =
     ChooseSnippetType snippetType ->
       let model = { model |  currentSnippetType = snippetType }
       in (model, Effects.none)
-    UpdateTag id action ->
-      let
-        model = { model | entries = List.map (\entry ->
-          if id == entry.id
-          then { entry | tags = DynamicList.update action entry.tags }
-          else entry
-          ) model.entries
-        }
-      in (model, Effects.none)
+    -- UpdateTag id action ->
+    --   let
+    --     model = { model | entries = List.map (\entry ->
+    --       if id == entry.id
+    --       then { entry | tags = DynamicList.update action entry.tags }
+    --       else entry
+    --       ) model.entries
+    --     }
+    --   in (model, Effects.none)
     PostRender message ->
       (model, Effects.none)
     ApiCall result ->
@@ -128,8 +128,8 @@ view address model =
       div []
       [ Snippets.render snippet
       , button [ onClick address (DeleteEntry snippet.id) ] []
-      , input [ onEnter address (\text -> (UpdateTag snippet.id (DynamicList.Add (Tags.initialize text)))) ] []
-      , Tags.view (Signal.forwardTo address (UpdateTag snippet.id)) snippet.tags
+      -- , input [ onEnter address (\text -> (UpdateTag snippet.id (DynamicList.Add (Tags.initialize text)))) ] []
+      -- , Tags.view (Signal.forwardTo address (UpdateTag snippet.id)) snippet.tags
       ]
   in
     div []

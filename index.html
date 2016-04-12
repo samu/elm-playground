@@ -13,7 +13,7 @@
 </head>
 
 <body>
-  <!-- <div id="main"></div> -->
+  <div id="main"></div>
   <br>
   <div id="dynamicList"></div>
 </body>
@@ -25,7 +25,7 @@
     return Elm.embed(program, document.getElementById(id));
   }
 
-  // var main = embed("main", Elm.Main);
+  var main = embed("main", Elm.Main);
   var dynamicList = embed("dynamicList", Elm.DynamicList);
 
   main.ports.embedSoundCloud.subscribe(embedSoundCloud);

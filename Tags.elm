@@ -2,19 +2,25 @@ module Tags where
 
 import Html exposing (Html, text, div, span)
 import Html.Attributes exposing (class)
-import DynamicList exposing (DynamicList, Action, Entry, removeButton, action)
+import DynamicList exposing (DynamicList, Action, Indexed, removeButton, action)
 
-type alias Tag = { text : String }
+type alias Tag = Indexed { text : String }
 
+type alias Model = DynamicList Tag
 
-view : Signal.Address (Action Tag) -> DynamicList Tag -> Html
-view address model =
-  let renderTag address entry =
-        span
-          [ class "label label-info" ]
-          [ text entry.item.text, removeButton (action entry address) ]
-  in div [] (List.map (renderTag address) model.entries)
+type Action = Action
 
+update : Action -> Model -> Model
+update action model = model
 
-initialize : String -> Tag
-initialize text = { text = text}
+-- view : Signal.Address (Action Tag) -> DynamicList Tag -> Html
+-- view address model =
+--   let renderTag address entry =
+--         span
+--           [ class "label label-info" ]
+--           [ text entry.item.text, removeButton (action entry address) ]
+--   in div [] (List.map (renderTag address) model.entries)
+--
+--
+-- initialize : String -> Tag
+-- initialize text = { text = text}

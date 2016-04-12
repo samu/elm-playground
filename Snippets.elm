@@ -3,19 +3,20 @@ import Regex exposing (Regex, regex, contains)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-
 import Snippets.PlainText
 import Snippets.SoundCloud
+import Tags exposing (Tag)
 
-import Tags
+-- MODEL --
 
-import DynamicList
+type alias Content = String
 
 type alias Snippet =
-  { content : String
+  { content : Content
   , id : Int
   , kind : SnippetType
-  , tags : DynamicList.DynamicList Tags.Tag
+  , tags : List Tag
+  , currentTagId : Int
   }
 
 type SnippetType
@@ -29,8 +30,12 @@ initializeSnippet content id kind =
   { content = content
   , id = id
   , kind = kind
-  , tags = DynamicList.initialize []
+  , tags = []
+  , currentTagId = 0
   }
+
+
+-- HELPERS --
 
 regexToSnippetType : List (Regex, SnippetType)
 regexToSnippetType =
@@ -61,3 +66,18 @@ render snippet =
       text "this is markdown"
     SoundCloud ->
       Snippets.SoundCloud.render snippet
+
+-- UPDATE --
+
+type Action
+  = Edit Snippet
+  | UpdateTags Tags.Action
+
+update : Action -> Snippet -> Snippet
+update action model =
+  case action of
+    Edit snippet -> snippet
+    UpdateTags action ->
+      let dynamicList = Tags.update action { currentId = 0, entries = model.tags }
+          model = { model | currentTagId = dynamicList.currentId, tags = dynamicList.entries}
+      in  model
