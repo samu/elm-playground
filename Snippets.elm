@@ -1,3 +1,22 @@
+-- Some thoughts on how to organize the snippets code
+-- - There are single snippets
+-- - Every snippet can be shown on its own
+-- - Every snippet has its own view and update logic
+--   - view
+--     - take arbitary content (json) and decode it
+--     - generate the view accordingly
+--     - invoke post-render-effects (for example for soundcloud snippets)
+--     - animation loop?
+--   - update
+--     - react to actions that are specific to the snippet
+-- - Snippets can also appear in lists
+--   - the list is unaware of the different snippet types
+-- - Snippets have a basic structure: content, id, tags, ...?
+--   - Most likely, snippet contents will be arbitrary json structures, hence every snippet
+--     will have its own json decoder
+-- -
+
+
 module Snippets where
 import Regex exposing (Regex, regex, contains)
 import Html exposing (..)
