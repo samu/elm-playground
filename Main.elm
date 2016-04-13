@@ -22,6 +22,8 @@ import Snippet exposing
   , initializeSnippet
   )
 
+import SnippetList
+
 import Utils exposing (..)
 
 import DynamicList
@@ -32,7 +34,8 @@ type alias ID = Int
 
 type alias Model =
   { field : String
-  , entries : List Snippet
+  -- , entries : List Snippet
+  , snippetList : SnippetList.Model
   , currentId : ID
   , currentSnippetType : SnippetType
   , query : String
@@ -70,16 +73,12 @@ update action model =
           |> doUpdateSnippetType
       in (model, Effects.none)
     AddEntry str ->
-      let
-        newSnippet = initializeSnippet str model.currentId model.currentSnippetType
-        model = { model
-          | entries = model.entries ++ [newSnippet]
-          , currentId = model.currentId + 1
-        }
-      in (model, invokePostRender (toString newSnippet.id, "das"))
+      let newSnippet = initializeSnippet str model.currentId model.currentSnippetType
+          newSnippetList = SnippetList.update (SnippetList.Add newSnippet) model.snippetList
+      in ({ model | snippetList = newSnippetList }, invokePostRender (toString newSnippet.id, "das"))
     DeleteEntry id ->
-      let model = { model | entries = List.filter (\t -> t.id /= id) model.entries }
-      in (model, Effects.none)
+      let newSnippetList = SnippetList.update (SnippetList.Delete id) model.snippetList
+      in ({ model | snippetList = newSnippetList }, Effects.none)
     ChooseSnippetType snippetType ->
       let model = { model |  currentSnippetType = snippetType }
       in (model, Effects.none)
@@ -123,7 +122,7 @@ view : Signal.Address Action -> Model -> Html
 view address model =
   let
     query = regex (".*" ++ model.query ++ ".*")
-    filteredEntries = List.filter (\e -> contains query e.content) model.entries
+    filteredEntries = List.filter (\e -> contains query e.content) model.snippetList.entries
     renderEntry address snippet =
       div []
       [ Snippet.render snippet
@@ -148,7 +147,12 @@ view address model =
 
 emptyModel : Model
 emptyModel =
-  { field = "", entries = [], currentId = 0, currentSnippetType = PlainText, query = "" }
+  { field = ""
+  , snippetList = DynamicList.initialize []
+  , currentId = 0
+  , currentSnippetType = PlainText
+  , query = ""
+  }
 
 app =
   StartApp.start
