@@ -9,6 +9,14 @@
 --     - animation loop?
 --   - update
 --     - react to actions that are specific to the snippet
+--   - do these two parts (view and update) have to be aware of the data structure
+--     of a snippet?
+--     - view: all we need is the json structure, from that we can build the entire
+--       representation. The tags are not directly related to a snippet. Neither is
+--       the title or the id.
+--     - update is probably a bit trickier:
+--       - can updates on a snippet trigger updates on other snippets?
+--       - ?
 -- - Snippets can also appear in lists
 --   - the list is unaware of the different snippet types
 -- - Snippets have a basic structure: content, id, tags, ...?
@@ -17,13 +25,13 @@
 -- -
 
 
-module Snippets where
+module Snippet where
 import Regex exposing (Regex, regex, contains)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Snippets.PlainText
-import Snippets.SoundCloud
+import Snippet.PlainText
+import Snippet.SoundCloud
 import Tags exposing (Tag)
 
 -- MODEL --
@@ -78,13 +86,13 @@ render : Snippet -> Html
 render snippet =
   case snippet.kind of
     PlainText ->
-      Snippets.PlainText.render snippet
+      Snippet.PlainText.render snippet
     StickyNote ->
       text "this is sticky note"
     Markdown ->
       text "this is markdown"
     SoundCloud ->
-      Snippets.SoundCloud.render snippet
+      Snippet.SoundCloud.render snippet
 
 -- UPDATE --
 

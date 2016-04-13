@@ -1,10 +1,10 @@
-module Snippets.SoundCloud where
+module Snippet.SoundCloud where
 import Html exposing (..)
 import Html.Attributes exposing (..)
 
-render snippet =
-  div [ id (toString snippet.id) ]
+render {content, id} =
+  div [ Html.Attributes.id (toString id) ]
   [ text "this is soundcloud yeah!"
   , br [] []
-  , text snippet.content
+  , text content
   ]

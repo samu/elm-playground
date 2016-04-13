@@ -15,7 +15,7 @@ import Regex exposing (..)
 import Http
 import Time
 
-import Snippets exposing
+import Snippet exposing
   ( Snippet
   , SnippetType (..)
   , getSnippetTypeByText
@@ -126,7 +126,7 @@ view address model =
     filteredEntries = List.filter (\e -> contains query e.content) model.entries
     renderEntry address snippet =
       div []
-      [ Snippets.render snippet
+      [ Snippet.render snippet
       , button [ onClick address (DeleteEntry snippet.id) ] []
       -- , input [ onEnter address (\text -> (UpdateTag snippet.id (DynamicList.Add (Tags.initialize text)))) ] []
       -- , Tags.view (Signal.forwardTo address (UpdateTag snippet.id)) snippet.tags

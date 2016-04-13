@@ -1,9 +1,9 @@
-module Snippets.PlainText where
+module Snippet.PlainText where
 import Html exposing (..)
 
-render snippet =
+render {content} =
   div []
   [ text "this is just some plain text"
   , br [] []
-  , text snippet.content
+  , text content
   ]
