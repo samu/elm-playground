@@ -5,10 +5,10 @@
 --   - view
 --     - take arbitary content (json) and decode it
 --     - generate the view accordingly
---     - invoke post-render-effects (for example for soundcloud snippets)
 --     - animation loop?
 --   - update
 --     - react to actions that are specific to the snippet
+--     - invoke post-render-effects (for example for soundcloud snippets)
 --   - do these two parts (view and update) have to be aware of the data structure
 --     of a snippet?
 --     - view: all we need is the json structure, from that we can build the entire
