@@ -150,7 +150,7 @@ port runner =
 -- DROPDOWN --
 
 snippetTypes : List String
-snippetTypes = List.map toString [PlainText, StickyNote, Markdown, SoundCloud]
+snippetTypes = List.map toString [PlainText, SoundCloud]
 
 snippetTypeOptions : SnippetType -> List Html
 snippetTypeOptions currentSnippetType =
@@ -168,8 +168,6 @@ snippetTypeOptions currentSnippetType =
 stringToSnippetType string =
   case string of
     "PlainText" -> PlainText
-    "Sticky note" -> StickyNote
-    "Markdown" -> Markdown
     "SoundCloud" -> SoundCloud
     _ -> PlainText
 

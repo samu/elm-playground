@@ -50,8 +50,6 @@ type alias Snippet = Indexed
 
 type SnippetType
   = PlainText
-  | StickyNote
-  | Markdown
   | SoundCloud
 
 initializeSnippet : String -> SnippetType -> Snippet
@@ -89,10 +87,6 @@ render snippet =
   case snippet.kind of
     PlainText ->
       Snippet.PlainText.render snippet
-    StickyNote ->
-      text "this is sticky note"
-    Markdown ->
-      text "this is markdown"
     SoundCloud ->
       Snippet.SoundCloud.render snippet
 
