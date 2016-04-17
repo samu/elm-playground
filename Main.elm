@@ -111,7 +111,7 @@ view address model =
     , button [ onClick address (UpdateSnippets (SnippetList.Add (newSnippet model.field))) ] [ text "yo" ]
     , dropdown address model
     , input [ on "input" targetValue  (Search >> (Signal.message address))] []
-    , SnippetList.view (Signal.forwardTo address UpdateSnippets) model.snippetList.entries
+    , SnippetList.view (Signal.forwardTo address UpdateSnippets) filteredEntries
     ]
 
 
