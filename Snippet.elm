@@ -33,6 +33,8 @@ import Html.Events exposing (..)
 import Snippet.PlainText
 import Snippet.SoundCloud
 import Tags exposing (Tag)
+import DynamicList
+import Utils exposing (onEnter)
 
 -- MODEL --
 
@@ -98,13 +100,24 @@ render snippet =
 
 type Action
   = Edit Snippet
-  | UpdateTags Tags.Action
+  | UpdateTags (DynamicList.Action Tag)
 
 update : Action -> Snippet -> Snippet
 update action model =
   case action of
     Edit snippet -> snippet
     UpdateTags action ->
-      let dynamicList = Tags.update action { currentId = 0, entries = model.tags }
+      let dynamicList = DynamicList.update action { currentId = model.currentTagId, entries = model.tags }
           model = { model | currentTagId = dynamicList.currentId, tags = dynamicList.entries}
       in  model
+
+
+-- VIEW --
+
+view : Signal.Address Action -> Snippet -> Html
+view address snippet =
+  div []
+  [ render snippet
+  , input [ onEnter address (\text -> (UpdateTags (DynamicList.Add (Tags.initialize text)))) ] []
+  , Tags.view (Signal.forwardTo address (UpdateTags)) snippet.tags
+  ]

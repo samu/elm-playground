@@ -47,10 +47,8 @@ type alias Model =
 type Action
   = NoOp
   | UpdateField String
-  | AddEntry String
-  | DeleteEntry Int
+  | UpdateSnippets SnippetList.Action
   | ChooseSnippetType SnippetType
-  -- | UpdateTag ID (DynamicList.Action Tag)
   | PostRender (String, String)
   | ApiCall (Result Http.Error String)
   | Search String
@@ -72,25 +70,16 @@ update action model =
           |> doUpdateField newValue
           |> doUpdateSnippetType
       in (model, Effects.none)
-    AddEntry str ->
-      let newSnippet = initializeSnippet str model.currentId model.currentSnippetType
-          newSnippetList = SnippetList.update (SnippetList.Add newSnippet) model.snippetList
-      in ({ model | snippetList = newSnippetList }, invokePostRender (toString newSnippet.id, "das"))
-    DeleteEntry id ->
-      let newSnippetList = SnippetList.update (SnippetList.Delete id) model.snippetList
-      in ({ model | snippetList = newSnippetList }, Effects.none)
+    UpdateSnippets action ->
+      let snippetList = SnippetList.update action model.snippetList
+      in ({ model | snippetList = snippetList }, Effects.none)
+    -- AddEntry str ->
+    --   let newSnippet = initializeSnippet str model.currentId model.currentSnippetType
+    --       newSnippetList = SnippetList.update (SnippetList.Add newSnippet) model.snippetList
+    --   in ({ model | snippetList = newSnippetList }, invokePostRender (toString newSnippet.id, "das"))
     ChooseSnippetType snippetType ->
       let model = { model |  currentSnippetType = snippetType }
       in (model, Effects.none)
-    -- UpdateTag id action ->
-    --   let
-    --     model = { model | entries = List.map (\entry ->
-    --       if id == entry.id
-    --       then { entry | tags = DynamicList.update action entry.tags }
-    --       else entry
-    --       ) model.entries
-    --     }
-    --   in (model, Effects.none)
     PostRender message ->
       (model, Effects.none)
     ApiCall result ->
@@ -121,25 +110,19 @@ invokeApiCall =
 view : Signal.Address Action -> Model -> Html
 view address model =
   let
+    newSnippet content = initializeSnippet content model.currentId model.currentSnippetType
     query = regex (".*" ++ model.query ++ ".*")
     filteredEntries = List.filter (\e -> contains query e.content) model.snippetList.entries
-    renderEntry address snippet =
-      div []
-      [ Snippet.render snippet
-      , button [ onClick address (DeleteEntry snippet.id) ] []
-      -- , input [ onEnter address (\text -> (UpdateTag snippet.id (DynamicList.Add (Tags.initialize text)))) ] []
-      -- , Tags.view (Signal.forwardTo address (UpdateTag snippet.id)) snippet.tags
-      ]
   in
     div []
     [ input
       [ on "input" targetValue (UpdateField >> (Signal.message address))
-      , onEnter address AddEntry
+      , onEnter address (\text -> (UpdateSnippets (SnippetList.Add (newSnippet text))))
       ] []
-    , button [ onClick address (AddEntry model.field) ] [ text "yo" ]
+    , button [ onClick address (UpdateSnippets (SnippetList.Add (newSnippet model.field))) ] [ text "yo" ]
     , dropdown address model
     , input [ on "input" targetValue  (Search >> (Signal.message address))] []
-    , div [] (List.map (renderEntry address) filteredEntries)
+    , SnippetList.view (Signal.forwardTo address UpdateSnippets) model.snippetList.entries
     ]
 
 

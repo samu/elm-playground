@@ -13,14 +13,14 @@ type Action = Action
 update : Action -> Model -> Model
 update action model = model
 
--- view : Signal.Address (Action Tag) -> DynamicList Tag -> Html
--- view address model =
---   let renderTag address entry =
---         span
---           [ class "label label-info" ]
---           [ text entry.item.text, removeButton (action entry address) ]
---   in div [] (List.map (renderTag address) model.entries)
+view : Signal.Address (DynamicList.Action Tag) -> List Tag -> Html
+view address model =
+  let renderTag address entry =
+        span
+          [ class "label label-info" ]
+          [ text entry.text, removeButton (action entry address) ]
+  in div [] (List.map (renderTag address) model)
 --
 --
--- initialize : String -> Tag
--- initialize text = { text = text}
+initialize : String -> Tag
+initialize text = { id = 0, text = text}
