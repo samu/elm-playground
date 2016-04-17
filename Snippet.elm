@@ -35,14 +35,14 @@ import Snippet.SoundCloud
 import Tags exposing (Tag)
 import DynamicList
 import Utils exposing (onEnter)
+import DynamicList exposing (Indexed)
 
 -- MODEL --
 
 type alias Content = String
 
-type alias Snippet =
+type alias Snippet = Indexed
   { content : Content
-  , id : Int
   , kind : SnippetType
   , tags : List Tag
   , currentTagId : Int
