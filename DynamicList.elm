@@ -38,7 +38,7 @@ update action model =
       let updateCurrentId model = { model | currentId = model.currentId + 1 }
           createEntry entry = { entry | id = model.currentId }
           addEntry model = { model | entries = model.entries ++ [createEntry entry]}
-      in  model |> updateCurrentId |> addEntry
+      in  model |> addEntry |> updateCurrentId 
     Delete id ->
       let model = { model | entries = filter (\n -> n.id /= id) model.entries }
       in  model

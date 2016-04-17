@@ -22,7 +22,7 @@ import Snippet exposing
   , initializeSnippet
   )
 
-import SnippetList
+import SnippetList exposing (interop)
 
 import Utils exposing (..)
 
@@ -34,9 +34,7 @@ type alias ID = Int
 
 type alias Model =
   { field : String
-  -- , entries : List Snippet
   , snippetList : SnippetList.Model
-  , currentId : ID
   , currentSnippetType : SnippetType
   , query : String
   }
@@ -53,7 +51,7 @@ type Action
   | ApiCall (Result Http.Error String)
   | Search String
 
-update : Action -> Model -> ( Model, Effects Action )
+update : Action -> Model -> (Model, Effects Action)
 update action model =
   case action of
     NoOp -> (model, Effects.none)
@@ -71,12 +69,9 @@ update action model =
           |> doUpdateSnippetType
       in (model, Effects.none)
     UpdateSnippets action ->
-      let snippetList = SnippetList.update action model.snippetList
-      in ({ model | snippetList = snippetList }, Effects.none)
-    -- AddEntry str ->
-    --   let newSnippet = initializeSnippet str model.currentId model.currentSnippetType
-    --       newSnippetList = SnippetList.update (SnippetList.Add newSnippet) model.snippetList
-    --   in ({ model | snippetList = newSnippetList }, invokePostRender (toString newSnippet.id, "das"))
+      let (snippetList, effects) = SnippetList.update action model.snippetList
+          transform action = UpdateSnippets action
+      in ({ model | snippetList = snippetList }, Effects.map transform effects)
     ChooseSnippetType snippetType ->
       let model = { model |  currentSnippetType = snippetType }
       in (model, Effects.none)
@@ -92,12 +87,6 @@ update action model =
 
 -- EFFECTS --
 
-invokePostRender t =
-  Signal.send interop.address t
-    |> Task.map (\n -> t)
-    |> Task.map PostRender
-    |> Effects.task
-
 invokeApiCall =
   Http.getString "http://localhost:3000/"
     |> Task.toResult
@@ -110,7 +99,7 @@ invokeApiCall =
 view : Signal.Address Action -> Model -> Html
 view address model =
   let
-    newSnippet content = initializeSnippet content model.currentId model.currentSnippetType
+    newSnippet content = initializeSnippet content model.currentSnippetType
     query = regex (".*" ++ model.query ++ ".*")
     filteredEntries = List.filter (\e -> contains query e.content) model.snippetList.entries
   in
@@ -132,7 +121,6 @@ emptyModel : Model
 emptyModel =
   { field = ""
   , snippetList = DynamicList.initialize []
-  , currentId = 0
   , currentSnippetType = PlainText
   , query = ""
   }
@@ -147,8 +135,6 @@ app =
 
 main =
   app.html
-
-interop = Signal.mailbox ("", "")
 
 
 -- PORTS --

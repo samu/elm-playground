@@ -54,10 +54,10 @@ type SnippetType
   | Markdown
   | SoundCloud
 
-initializeSnippet : String -> Int -> SnippetType -> Snippet
-initializeSnippet content id kind =
+initializeSnippet : String -> SnippetType -> Snippet
+initializeSnippet content kind =
   { content = content
-  , id = id
+  , id = 0
   , kind = kind
   , tags = []
   , currentTagId = 0
