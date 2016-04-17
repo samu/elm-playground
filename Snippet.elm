@@ -32,35 +32,10 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Snippet.PlainText
 import Snippet.SoundCloud
-import Tags exposing (Tag)
 import DynamicList
 import Utils exposing (onEnter)
-import DynamicList exposing (Indexed)
-
--- MODEL --
-
-type alias Content = String
-
-type alias Snippet = Indexed
-  { content : Content
-  , kind : SnippetType
-  , tags : List Tag
-  , currentTagId : Int
-  }
-
-type SnippetType
-  = PlainText
-  | SoundCloud
-
-initializeSnippet : String -> SnippetType -> Snippet
-initializeSnippet content kind =
-  { content = content
-  , id = 0
-  , kind = kind
-  , tags = []
-  , currentTagId = 0
-  }
-
+import Snippet.Base exposing (Snippet, Action(..), SnippetType(..))
+import Tags exposing (Tag)
 
 -- HELPERS --
 
@@ -82,36 +57,20 @@ getSnippetTypeByText' query list =
       else getSnippetTypeByText' query t
     [] -> PlainText
 
-render : Snippet -> Html
-render snippet =
+-- VIEW --
+
+render : Signal.Address Action -> Snippet -> Html
+render address snippet =
   case snippet.kind of
     PlainText ->
-      Snippet.PlainText.render snippet
+      Snippet.PlainText.render address snippet
     SoundCloud ->
       Snippet.SoundCloud.render snippet
-
--- UPDATE --
-
-type Action
-  = Edit Snippet
-  | UpdateTags (DynamicList.Action Tag)
-
-update : Action -> Snippet -> Snippet
-update action model =
-  case action of
-    Edit snippet -> snippet
-    UpdateTags action ->
-      let dynamicList = DynamicList.update action { currentId = model.currentTagId, entries = model.tags }
-          model = { model | currentTagId = dynamicList.currentId, tags = dynamicList.entries}
-      in  model
-
-
--- VIEW --
 
 view : Signal.Address Action -> Snippet -> Html
 view address snippet =
   div []
-  [ render snippet
+  [ render address snippet
   , input [ onEnter address (\text -> (UpdateTags (DynamicList.Add (Tags.initialize text)))) ] []
   , Tags.view (Signal.forwardTo address (UpdateTags)) snippet.tags
   ]

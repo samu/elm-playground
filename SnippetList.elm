@@ -2,7 +2,8 @@ module SnippetList where
 import Html exposing (Html, text, div, button)
 import Html.Events exposing (onClick)
 import DynamicList exposing (DynamicList, Action, Indexed, removeButton, action)
-import Snippet exposing (Snippet)
+import Snippet
+import Snippet.Base exposing (Snippet)
 import Effects exposing (Effects)
 import Task
 
@@ -15,7 +16,7 @@ type Action
   = NoOp
   | Add Snippet
   | Delete Int
-  | Update Snippet Snippet.Action
+  | Update Snippet Snippet.Base.Action
   | PostRender (String, String)
 
 update : Action -> Model -> (Model, Effects Action)
@@ -28,7 +29,7 @@ update action model =
       in (model, effect)
     Delete id -> (DynamicList.update (DynamicList.Delete id) model, Effects.none)
     Update snippet action ->
-      let newSnippet = Snippet.update action snippet
+      let newSnippet = Snippet.Base.update action snippet
           model = { model | entries = List.map (\entry ->
             if snippet.id == entry.id
             then newSnippet

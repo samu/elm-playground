@@ -15,10 +15,11 @@ import Regex exposing (..)
 import Http
 import Time
 
-import Snippet exposing
+import Snippet exposing (getSnippetTypeByText)
+
+import Snippet.Base exposing
   ( Snippet
   , SnippetType (..)
-  , getSnippetTypeByText
   , initializeSnippet
   )
 
@@ -120,7 +121,7 @@ view address model =
 emptyModel : Model
 emptyModel =
   { field = ""
-  , snippetList = DynamicList.initialize []
+  , snippetList = DynamicList.initialize [initializeSnippet "bla" PlainText]
   , currentSnippetType = PlainText
   , query = ""
   }
