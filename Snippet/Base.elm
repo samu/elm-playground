@@ -52,8 +52,7 @@ update action model =
       let dynamicList = DynamicList.update action { currentId = model.currentTagId, entries = model.tags }
           model = { model | currentTagId = dynamicList.currentId, tags = dynamicList.entries}
       in  model
-    PostRender message ->
-      Debug.log "model" model
+    PostRender message -> model
 
 invokePostRender t =
   Signal.send interop.address t

@@ -42,7 +42,7 @@ import Effects
 
 regexToSnippetType : List (Regex, SnippetType)
 regexToSnippetType =
-  [ (regex "^soundcloud.com", SoundCloud)
+  [ (regex "^https://soundcloud.com", SoundCloud)
   , (regex "^.*", PlainText)
   ]
 
@@ -68,11 +68,11 @@ render address snippet =
     SoundCloud ->
       Snippet.SoundCloud.render snippet
 
-getPostEffect : SnippetType -> Int -> Effects.Effects Snippet.Base.Action
-getPostEffect kind id =
+getPostEffect : Snippet.Base.Content -> SnippetType -> Int -> Effects.Effects Snippet.Base.Action
+getPostEffect content kind id =
   case kind of
     PlainText -> Effects.none
-    SoundCloud -> Snippet.Base.invokePostRender (toString (id), "das")
+    SoundCloud -> Snippet.Base.invokePostRender (toString (id), content)
 
 view : Signal.Address Action -> Snippet -> Html
 view address snippet =

@@ -32,7 +32,7 @@ update action model =
     Add snippet ->
       let map effect = Update snippet effect
           model = DynamicList.update (DynamicList.Add snippet) model
-          effect = Effects.map map (Snippet.getPostEffect snippet.kind (model.currentId - 1))
+          effect = Effects.map map (Snippet.getPostEffect snippet.content snippet.kind (model.currentId - 1))
       in (model, effect)
     AddMany snippets ->
       let (model, effects) = List.foldl reduceStep (model, []) snippets
