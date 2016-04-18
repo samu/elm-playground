@@ -72,9 +72,9 @@ update action model =
           |> doUpdateSnippetType
       in (model, Effects.none)
     UpdateSnippets action ->
-      let (snippetList, effects) = SnippetList.update action model.snippetList
-          transform action = UpdateSnippets action
-      in ({ model | snippetList = snippetList }, Effects.map transform effects)
+      let (snippetList, effect) = SnippetList.update action model.snippetList
+          transform effect = UpdateSnippets effect
+      in ({ model | snippetList = snippetList }, Effects.map transform effect)
     ChooseSnippetType snippetType ->
       let model = { model |  currentSnippetType = snippetType }
       in (model, Effects.none)
@@ -82,8 +82,10 @@ update action model =
       (model, Effects.none)
     ApiCall result ->
       let snippets = Result.withDefault [] result
-          model = { model | snippetList = DynamicList.initialize snippets }
-      in (model, Effects.none)
+          -- model = { model | snippetList = DynamicList.initialize snippets }
+          (newSnippetList, effect) = SnippetList.update (SnippetList.AddMany snippets) model.snippetList
+          model = { model | snippetList = newSnippetList}
+      in (model, Effects.map UpdateSnippets effect)
     Search query ->
       let model = { model | query = query }
       in (model, Effects.none)
@@ -134,7 +136,7 @@ view address model =
 emptyModel : Model
 emptyModel =
   { field = ""
-  , snippetList = DynamicList.initialize [initializeSnippet "bla" PlainText]
+  , snippetList = DynamicList.initialize []
   , currentSnippetType = PlainText
   , query = ""
   }

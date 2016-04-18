@@ -1,5 +1,6 @@
 module SnippetList where
 import Html exposing (Html, text, div, button)
+import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import DynamicList exposing (DynamicList, Action, Indexed, removeButton, action)
 import Snippet
@@ -15,8 +16,14 @@ type alias Model =
 type Action
   = NoOp
   | Add Snippet
+  | AddMany (List Snippet)
   | Delete Int
   | Update Snippet Snippet.Base.Action
+
+reduceStep : Snippet -> (Model, List (Effects Action)) -> (Model, List (Effects Action))
+reduceStep snippet (model, effects) =
+  let (model, effect) = update (Add snippet) model
+  in  (model, effects ++ [effect])
 
 update : Action -> Model -> (Model, Effects Action)
 update action model =
@@ -27,6 +34,10 @@ update action model =
           model = DynamicList.update (DynamicList.Add snippet) model
           effect = Effects.map map (Snippet.getPostEffect snippet.kind (model.currentId - 1))
       in (model, effect)
+    AddMany snippets ->
+      let (model, effects) = List.foldl reduceStep (model, []) snippets
+          effect = Effects.batch effects
+      in  (model, effect)
     Delete id -> (DynamicList.update (DynamicList.Delete id) model, Effects.none)
     Update snippet action ->
       let newSnippet = Snippet.Base.update action snippet
@@ -38,7 +49,7 @@ update action model =
       in  (model, Effects.none)
 
 renderEntry address snippet =
-  div []
+  div [ style [("border", "1px solid black")] ]
   [ Snippet.view (Signal.forwardTo address (Update snippet)) snippet
   , button [ onClick address (Delete snippet.id) ] [ text "x" ]
   ]
