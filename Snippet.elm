@@ -36,6 +36,7 @@ import DynamicList
 import Utils exposing (onEnter)
 import Snippet.Base exposing (Snippet, Action(..), SnippetType(..))
 import Tags exposing (Tag)
+import Effects
 
 -- HELPERS --
 
@@ -66,6 +67,12 @@ render address snippet =
       Snippet.PlainText.render address snippet
     SoundCloud ->
       Snippet.SoundCloud.render snippet
+
+getPostEffect : Snippet -> Effects.Effects Snippet.Base.Action
+getPostEffect snippet =
+  case snippet.kind of
+    PlainText -> Effects.none
+    SoundCloud -> Snippet.Base.invokePostRender (toString (snippet.id), "das")
 
 view : Signal.Address Action -> Snippet -> Html
 view address snippet =

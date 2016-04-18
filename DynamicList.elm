@@ -18,9 +18,8 @@ type alias DynamicList a =
 
 initialize : List (Indexed a) -> DynamicList a
 initialize list =
-  { currentId = 0
-  , entries = list
-  }
+  let entries = List.indexedMap (\index entry -> { entry | id = index } ) list
+  in  { currentId = List.length entries , entries = entries }
 
 
 -- UPDATE --
@@ -38,7 +37,7 @@ update action model =
       let updateCurrentId model = { model | currentId = model.currentId + 1 }
           createEntry entry = { entry | id = model.currentId }
           addEntry model = { model | entries = model.entries ++ [createEntry entry]}
-      in  model |> addEntry |> updateCurrentId 
+      in  model |> addEntry |> updateCurrentId
     Delete id ->
       let model = { model | entries = filter (\n -> n.id /= id) model.entries }
       in  model

@@ -1,6 +1,8 @@
 module Snippet.Base where
 import DynamicList exposing (Indexed)
 import Tags exposing (Tag)
+import Effects exposing (Effects)
+import Task
 
 
 -- MODEL --
@@ -37,6 +39,7 @@ type Action
   | Update String
   | IsEditing Bool
   | UpdateTags (DynamicList.Action Tag)
+  | PostRender (String, String)
 
 update : Action -> Snippet -> Snippet
 update action model =
@@ -49,3 +52,13 @@ update action model =
       let dynamicList = DynamicList.update action { currentId = model.currentTagId, entries = model.tags }
           model = { model | currentTagId = dynamicList.currentId, tags = dynamicList.entries}
       in  model
+    PostRender message ->
+      Debug.log "model" model
+
+invokePostRender t =
+  Signal.send interop.address t
+    |> Task.map (\n -> t)
+    |> Task.map PostRender
+    |> Effects.task
+
+interop = Signal.mailbox ("", "")

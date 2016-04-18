@@ -24,7 +24,8 @@ update action model =
   case action of
     NoOp -> (model, Effects.none)
     Add snippet ->
-      let effect = invokePostRender (toString (model.currentId-1), "das")
+      let map effect = Update snippet effect
+          effect = Effects.map map (Snippet.getPostEffect snippet)
           model = DynamicList.update (DynamicList.Add snippet) model
       in (model, effect)
     Delete id -> (DynamicList.update (DynamicList.Delete id) model, Effects.none)
@@ -36,14 +37,8 @@ update action model =
             else entry
           ) model.entries}
       in  (model, Effects.none)
-    PostRender message ->
+    PostRender snippet ->
       (model, Effects.none)
-
-invokePostRender t =
-  Signal.send interop.address t
-    |> Task.map (\n -> t)
-    |> Task.map PostRender
-    |> Effects.task
 
 renderEntry address snippet =
   div []
@@ -54,5 +49,3 @@ renderEntry address snippet =
 view : Signal.Address Action -> List Snippet -> Html
 view address model =
   div [] (List.map (renderEntry address) model)
-
-interop = Signal.mailbox ("", "")

@@ -14,6 +14,7 @@ import Graphics.Input exposing (dropDown)
 import Regex exposing (..)
 import Http
 import Time
+import Json.Decode as Json exposing ((:=))
 
 import Snippet exposing (getSnippetTypeByText)
 
@@ -23,7 +24,8 @@ import Snippet.Base exposing
   , initializeSnippet
   )
 
-import SnippetList exposing (interop)
+import SnippetList
+import Snippet.Base exposing (interop)
 
 import Utils exposing (..)
 
@@ -49,7 +51,7 @@ type Action
   | UpdateSnippets SnippetList.Action
   | ChooseSnippetType SnippetType
   | PostRender (String, String)
-  | ApiCall (Result Http.Error String)
+  | ApiCall (Result Http.Error (List Snippet))
   | Search String
 
 update : Action -> Model -> (Model, Effects Action)
@@ -79,7 +81,8 @@ update action model =
     PostRender message ->
       (model, Effects.none)
     ApiCall result ->
-      let message = Result.withDefault "" result
+      let snippets = Result.withDefault [] result
+          model = { model | snippetList = DynamicList.initialize snippets }
       in (model, Effects.none)
     Search query ->
       let model = { model | query = query }
@@ -89,11 +92,21 @@ update action model =
 -- EFFECTS --
 
 invokeApiCall =
-  Http.getString "http://localhost:3000/"
+  Http.get places "/server/index.json"
     |> Task.toResult
     |> Task.map ApiCall
     |> Effects.task
 
+toSnippet content kind =
+  initializeSnippet content (stringToSnippetType kind)
+
+places : Json.Decoder (List Snippet)
+places =
+  let place =
+        Json.object2 toSnippet
+          ("content" := Json.string)
+          ("kind" := Json.string)
+  in  "snippets" := Json.list place
 
 -- VIEW --
 

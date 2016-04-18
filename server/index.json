@@ -1,0 +1,10 @@
+{
+  "snippets" : [
+    { "content" : "teeest"
+    , "kind" : "SoundCloud"
+    },
+    { "content" : "blaa"
+    , "kind" : "blaub"
+    }
+  ]
+}
