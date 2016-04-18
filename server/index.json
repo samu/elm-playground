@@ -1,13 +1,10 @@
 {
   "snippets" : [
-    { "content" : "teeest"
+    { "content" : "https://soundcloud.com/forss/flickermood"
     , "kind" : "SoundCloud"
     },
-    { "content" : "blaa"
-    , "kind" : "blaub"
-    },
-    { "content" : "blaap"
-      , "kind" : "SoundCloud"
+    { "content" : "https://soundcloud.com/dossalocuzzed/nc-17-soldiers-dossa-locuzzed-remix"
+    , "kind" : "SoundCloud"
     }
   ]
 }
