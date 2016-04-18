@@ -43,7 +43,7 @@ type alias Model =
   }
 
 
-  -- UPDATE --
+-- UPDATE --
 
 type Action
   = NoOp
@@ -82,7 +82,6 @@ update action model =
       (model, Effects.none)
     ApiCall result ->
       let snippets = Result.withDefault [] result
-          -- model = { model | snippetList = DynamicList.initialize snippets }
           (newSnippetList, effect) = SnippetList.update (SnippetList.AddMany snippets) model.snippetList
           model = { model | snippetList = newSnippetList}
       in (model, Effects.map UpdateSnippets effect)
