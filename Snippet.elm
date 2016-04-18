@@ -68,11 +68,11 @@ render address snippet =
     SoundCloud ->
       Snippet.SoundCloud.render snippet
 
-getPostEffect : Snippet -> Effects.Effects Snippet.Base.Action
-getPostEffect snippet =
-  case snippet.kind of
+getPostEffect : SnippetType -> Int -> Effects.Effects Snippet.Base.Action
+getPostEffect kind id =
+  case kind of
     PlainText -> Effects.none
-    SoundCloud -> Snippet.Base.invokePostRender (toString (snippet.id), "das")
+    SoundCloud -> Snippet.Base.invokePostRender (toString (id), "das")
 
 view : Signal.Address Action -> Snippet -> Html
 view address snippet =

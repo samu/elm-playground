@@ -17,7 +17,6 @@ type Action
   | Add Snippet
   | Delete Int
   | Update Snippet Snippet.Base.Action
-  | PostRender (String, String)
 
 update : Action -> Model -> (Model, Effects Action)
 update action model =
@@ -25,8 +24,8 @@ update action model =
     NoOp -> (model, Effects.none)
     Add snippet ->
       let map effect = Update snippet effect
-          effect = Effects.map map (Snippet.getPostEffect snippet)
           model = DynamicList.update (DynamicList.Add snippet) model
+          effect = Effects.map map (Snippet.getPostEffect snippet.kind (model.currentId - 1))
       in (model, effect)
     Delete id -> (DynamicList.update (DynamicList.Delete id) model, Effects.none)
     Update snippet action ->
@@ -37,8 +36,6 @@ update action model =
             else entry
           ) model.entries}
       in  (model, Effects.none)
-    PostRender snippet ->
-      (model, Effects.none)
 
 renderEntry address snippet =
   div []
