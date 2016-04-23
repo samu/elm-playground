@@ -2,7 +2,7 @@ module Snippet.PlainText where
 import Html exposing (..)
 import Html.Attributes exposing (value)
 import Html.Events exposing (onClick, onBlur, targetValue, on)
-import Snippet.Base exposing (Action(..), Content)
+import Snippet.Base exposing (Snippet, Action(..), Content)
 import Signal
 
 renderContent address content isEdited =
@@ -17,7 +17,7 @@ renderContent address content isEdited =
         , button [ onClick address (IsEditing True) ] [ text "edit" ]
         ]
 
-render : Signal.Address Action -> { a | content : Content, id : Int, isEdited : Bool } -> Html
+render : Signal.Address Action -> Snippet -> Html
 render address {content, id, isEdited} =
   div []
   [ text ("this is just some plain text" ++ (toString id))

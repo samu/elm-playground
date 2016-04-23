@@ -39,7 +39,7 @@ render : Signal.Address Action -> Snippet -> Html
 render address snippet =
   case snippet.kind of
     PlainText -> Snippet.PlainText.render address snippet
-    SoundCloud -> Snippet.SoundCloud.render snippet
+    SoundCloud -> Snippet.SoundCloud.render address snippet
 
 getPostEffect : Snippet.Base.Content -> SnippetType -> Int -> Effects.Effects Snippet.Base.Action
 getPostEffect content kind id =

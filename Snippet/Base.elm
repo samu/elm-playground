@@ -17,6 +17,7 @@ type alias Snippet = Indexed
   , isEdited : Bool
   }
 
+-- type alias SnippetType = String
 type SnippetType
   = PlainText
   | SoundCloud

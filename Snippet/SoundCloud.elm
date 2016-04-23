@@ -2,8 +2,10 @@ module Snippet.SoundCloud where
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Lazy exposing (lazy2)
+import Snippet.Base exposing (Snippet, Action)
 
-render {content, id} =
+render : Signal.Address Action -> Snippet -> Html
+render address {content, id} =
   div [ Html.Attributes.id ("abc" ++ (toString id)) ]
   [ text ("this is soundcloud yeah!" ++ (toString id))
   , br [] []
