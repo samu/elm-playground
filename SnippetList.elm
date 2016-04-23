@@ -8,6 +8,8 @@ import Snippet.Base exposing (Snippet)
 import Effects exposing (Effects)
 import Task
 
+-- MODEL --
+
 type alias Model =
   { currentId : Int
   , entries : List Snippet
@@ -20,10 +22,8 @@ type Action
   | Delete Int
   | Update Snippet Snippet.Base.Action
 
-reduceStep : Snippet -> (Model, List (Effects Action)) -> (Model, List (Effects Action))
-reduceStep snippet (model, effects) =
-  let (model, effect) = update (Add snippet) model
-  in  (model, effects ++ [effect])
+
+-- UPDATE --
 
 update : Action -> Model -> (Model, Effects Action)
 update action model =
@@ -35,7 +35,10 @@ update action model =
           effect = Effects.map map (Snippet.getPostEffect snippet.content snippet.kind (model.currentId - 1))
       in (model, effect)
     AddMany snippets ->
-      let (model, effects) = List.foldl reduceStep (model, []) snippets
+      let reduceStep snippet (model, effects) =
+            let (model, effect) = update (Add snippet) model
+            in  (model, effects ++ [effect])
+          (model, effects) = List.foldl reduceStep (model, []) snippets
           effect = Effects.batch effects
       in  (model, effect)
     Delete id -> (DynamicList.update (DynamicList.Delete id) model, Effects.none)
@@ -47,6 +50,9 @@ update action model =
             else entry
           ) model.entries}
       in  (model, Effects.none)
+
+
+-- VIEW --
 
 renderEntry address snippet =
   div [ style [("border", "1px solid black")] ]
