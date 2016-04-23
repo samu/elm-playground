@@ -33,8 +33,6 @@ import DynamicList
 
 -- MODEL --
 
-type alias ID = Int
-
 type alias Model =
   { field : String
   , snippetList : SnippetList.Model
@@ -50,7 +48,6 @@ type Action
   | UpdateField String
   | UpdateSnippets SnippetList.Action
   | ChooseSnippetType SnippetType
-  | PostRender (String, String)
   | ApiCall (Result Http.Error (List Snippet))
   | Search String
 
@@ -78,8 +75,6 @@ update action model =
     ChooseSnippetType snippetType ->
       let model = { model |  currentSnippetType = snippetType }
       in (model, Effects.none)
-    PostRender message ->
-      (model, Effects.none)
     ApiCall result ->
       let snippets = Result.withDefault [] result
           (newSnippetList, effect) = SnippetList.update (SnippetList.AddMany snippets) model.snippetList
@@ -93,21 +88,20 @@ update action model =
 -- EFFECTS --
 
 invokeApiCall =
-  Http.get places "/server/index.json"
+  Http.get snippetListDecoder "/server/index.json"
     |> Task.toResult
     |> Task.map ApiCall
     |> Effects.task
 
-toSnippet content kind =
-  initializeSnippet content (stringToSnippetType kind)
-
-places : Json.Decoder (List Snippet)
-places =
-  let place =
+snippetListDecoder : Json.Decoder (List Snippet)
+snippetListDecoder =
+  let toSnippet content kind = initializeSnippet content (stringToSnippetType kind)
+      snippet =
         Json.object2 toSnippet
           ("content" := Json.string)
           ("kind" := Json.string)
-  in  "snippets" := Json.list place
+  in  "snippets" := Json.list snippet
+
 
 -- VIEW --
 
