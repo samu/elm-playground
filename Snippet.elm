@@ -14,6 +14,12 @@ import Effects
 
 -- HELPERS --
 
+stringToSnippetType string =
+  case string of
+    "PlainText" -> PlainText
+    "SoundCloud" -> SoundCloud
+    _ -> PlainText
+
 regexToSnippetType : List (Regex, SnippetType)
 regexToSnippetType =
   [ (regex "^https://soundcloud.com", SoundCloud)

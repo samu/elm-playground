@@ -15,8 +15,9 @@ import Regex exposing (..)
 import Http
 import Time
 import Json.Decode as Json exposing ((:=))
+import RestApi exposing (fetchSnippetList)
 
-import Snippet exposing (getSnippetTypeByText)
+import Snippet exposing (getSnippetTypeByText, stringToSnippetType)
 
 import Snippet.Base exposing
   ( Snippet
@@ -48,7 +49,7 @@ type Action
   | UpdateField String
   | UpdateSnippets SnippetList.Action
   | ChooseSnippetType SnippetType
-  | ApiCall (Result Http.Error (List Snippet))
+  | FetchSnippetList (Result Http.Error (List Snippet))
   | Search String
 
 update : Action -> Model -> (Model, Effects Action)
@@ -75,7 +76,7 @@ update action model =
     ChooseSnippetType snippetType ->
       let model = { model |  currentSnippetType = snippetType }
       in (model, Effects.none)
-    ApiCall result ->
+    FetchSnippetList result ->
       let snippets = Result.withDefault [] result
           (newSnippetList, effect) = SnippetList.update (SnippetList.AddMany snippets) model.snippetList
           model = { model | snippetList = newSnippetList}
@@ -83,24 +84,6 @@ update action model =
     Search query ->
       let model = { model | query = query }
       in (model, Effects.none)
-
-
--- EFFECTS --
-
-invokeApiCall =
-  Http.get snippetListDecoder "/server/index.json"
-    |> Task.toResult
-    |> Task.map ApiCall
-    |> Effects.task
-
-snippetListDecoder : Json.Decoder (List Snippet)
-snippetListDecoder =
-  let toSnippet content kind = initializeSnippet content (stringToSnippetType kind)
-      snippet =
-        Json.object2 toSnippet
-          ("content" := Json.string)
-          ("kind" := Json.string)
-  in  "snippets" := Json.list snippet
 
 
 -- VIEW --
@@ -137,7 +120,7 @@ emptyModel =
 
 app =
   StartApp.start
-    { init = (emptyModel, invokeApiCall)
+    { init = (emptyModel, Effects.map FetchSnippetList fetchSnippetList)
     , inputs = []
     , update = update
     , view = view
@@ -173,13 +156,6 @@ snippetTypeOptions currentSnippetType =
       [ if typeAsString == item then selected True else selected False]
       [text item]
     ) snippetTypes
-
-
-stringToSnippetType string =
-  case string of
-    "PlainText" -> PlainText
-    "SoundCloud" -> SoundCloud
-    _ -> PlainText
 
 dropdown address model =
   select
