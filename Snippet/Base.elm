@@ -55,9 +55,10 @@ update action model =
       in  model
     PostRender message -> model
 
-invokePostRender t =
-  Signal.send interop.address t
-    |> Task.map (\n -> t)
+invokePostRender : (String, String) -> Effects Action
+invokePostRender message =
+  Signal.send interop.address message
+    |> Task.map (always message)
     |> Task.map PostRender
     |> Effects.task
 

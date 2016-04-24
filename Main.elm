@@ -111,6 +111,7 @@ view address model =
     newSnippet content = initializeSnippet content model.currentSnippetType
     query = regex (".*" ++ model.query ++ ".*")
     filteredEntries = List.filter (\e -> contains query e.content) model.snippetList.entries
+    filteredSnippetList = { currentId = model.snippetList.currentId, entries = filteredEntries }
   in
     div []
     [ input
@@ -120,7 +121,7 @@ view address model =
     , button [ onClick address (UpdateSnippets (SnippetList.Add (newSnippet model.field))) ] [ text "yo" ]
     , dropdown address model
     , input [ on "input" targetValue  (Search >> (Signal.message address))] []
-    , SnippetList.view (Signal.forwardTo address UpdateSnippets) filteredEntries
+    , SnippetList.view (Signal.forwardTo address UpdateSnippets) filteredSnippetList
     ]
 
 
