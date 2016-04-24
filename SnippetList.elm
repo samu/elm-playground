@@ -30,10 +30,9 @@ update action model =
   case action of
     NoOp -> (model, Effects.none)
     Add snippet ->
-      let map effect = Update snippet effect
-          model = DynamicList.update (DynamicList.Add snippet) model
-          effect = Effects.map map (Snippet.getPostEffect snippet.content snippet.kind (model.currentId - 1))
-      in (model, effect)
+      let model = DynamicList.update (DynamicList.Add snippet) model
+          effect = Snippet.getPostEffect snippet.content snippet.kind (model.currentId - 1)
+      in (model, Effects.map (always NoOp) effect)
     AddMany snippets ->
       let reduceStep snippet (model, effects) =
             let (model, effect) = update (Add snippet) model
@@ -60,6 +59,6 @@ renderEntry address snippet =
   , button [ onClick address (Delete snippet.id) ] [ text "x" ]
   ]
 
-view : Signal.Address Action -> List Snippet -> Html
+view : Signal.Address Action -> Model -> Html
 view address model =
-  div [] (List.map (renderEntry address) model)
+  div [] (List.map (renderEntry address) model.entries)
