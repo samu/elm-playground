@@ -94,7 +94,8 @@ view address model =
     newSnippet content = initializeSnippet content model.currentSnippetType
     query = regex (".*" ++ model.query ++ ".*")
     filteredEntries = List.filter (\e -> contains query e.content) model.snippetList.entries
-    filteredSnippetList = { currentId = model.snippetList.currentId, entries = filteredEntries }
+    snippetList = model.snippetList
+    filteredSnippetList = { snippetList | entries = filteredEntries }
   in
     div []
     [ input
