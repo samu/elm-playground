@@ -51,7 +51,8 @@ getPostEffect : Snippet -> Effects.Effects Snippet.Base.Action
 getPostEffect {content, kind, id} =
   case kind of
     PlainText -> Effects.none
-    SoundCloud -> Snippet.Base.invokePostRender (toString (id), content)
+    -- SoundCloud -> Snippet.Base.invokePostRender (toString (id), content)
+    SoundCloud -> Effects.none
 
 view : Signal.Address Action -> Snippet -> Html
 view address snippet =
