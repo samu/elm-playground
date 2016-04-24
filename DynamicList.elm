@@ -54,32 +54,15 @@ removeIcon = span [ class "glyphicon glyphicon-remove" ] []
 removeButton : Html.Attribute -> Html
 removeButton action = a [ href "#", action ] [ removeIcon ]
 
+getMostRecent : DynamicList a -> Indexed a -> Indexed a
+getMostRecent model defaultValue =
+  getMostRecent' (model.currentId-1) model.entries defaultValue
 
--- START --
-
-type alias Thing = Indexed { item : String }
-
-view : Signal.Address (Action Thing) -> DynamicList Thing -> Html
-view address model =
-  let renderTag address entry =
-        span
-          [ class "label label-info" ]
-          [ text entry.item, removeButton (action entry address) ]
-  in div [] (List.map (renderTag address) model.entries)
-
-main =
-  Signal.map (view mailbox.address) model
-
-defaultData : DynamicList Thing
-defaultData = { currentId = 0 , entries = [] }
-
-add : String -> (DynamicList Thing -> DynamicList Thing)
-add name = update (Add ({ id = 0 , item = name }))
-
-doStuff : DynamicList Thing -> DynamicList Thing
-doStuff data =
-  data |> add "hey" |> add "yes" |> add "it" |> add "works"
-
-model = Signal.foldp update (doStuff defaultData) mailbox.signal
-
-mailbox = Signal.mailbox NoOp
+getMostRecent' : Int -> List (Indexed a) -> Indexed a -> Indexed a
+getMostRecent' id list defaultValue =
+  case list of
+    (head :: tail) ->
+      if head.id == id
+      then head
+      else getMostRecent' id tail defaultValue
+    [] -> defaultValue

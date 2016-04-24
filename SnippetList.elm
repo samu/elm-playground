@@ -31,7 +31,8 @@ update action model =
     NoOp -> (model, Effects.none)
     Add snippet ->
       let model = DynamicList.update (DynamicList.Add snippet) model
-          effect = Snippet.getPostEffect snippet.content snippet.kind (model.currentId - 1)
+          mostRecentSnippet = DynamicList.getMostRecent model snippet
+          effect = Snippet.getPostEffect mostRecentSnippet
       in (model, Effects.map (always NoOp) effect)
     AddMany snippets ->
       let reduceStep snippet (model, effects) =

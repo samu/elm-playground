@@ -47,8 +47,8 @@ render address snippet =
     PlainText -> Snippet.PlainText.render address snippet
     SoundCloud -> Snippet.SoundCloud.render address snippet
 
-getPostEffect : Snippet.Base.Content -> SnippetType -> Int -> Effects.Effects Snippet.Base.Action
-getPostEffect content kind id =
+getPostEffect : Snippet -> Effects.Effects Snippet.Base.Action
+getPostEffect {content, kind, id} =
   case kind of
     PlainText -> Effects.none
     SoundCloud -> Snippet.Base.invokePostRender (toString (id), content)
