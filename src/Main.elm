@@ -1,4 +1,3 @@
--- run it: elm-live Main.elm --output elm.js
 module Main where
 import Html exposing (..)
 import Html.Attributes exposing (..)
