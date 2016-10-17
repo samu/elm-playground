@@ -8,6 +8,8 @@ import Element exposing (toHtml)
 import Window
 import String
 import Mouse
+import Math exposing (calculateDistance, calculateAngle, rotateAroundPoint)
+import Debug exposing (log)
 
 main =
   program { init = init, view = view, update = update, subscriptions = subscriptions }
@@ -94,5 +96,11 @@ view model =
       ++ [move (posX, -posY) (filled (rgb 1 1 1) (rect 10 10))]
       ++ [drawBaseShape model]
       ++ [drawDot (rgb 0 0 255) point]
+      ++ [move (0, 80) (rotateAroundPoint (degrees -45) (40, -40) (drawBaseShape model))]
+      ++ [move (0, 80) (rotateAroundPoint (degrees 45) (-40, -40) (drawBaseShape model))]
+
+    d = Debug.log "distance" (calculateDistance (-10, 0) (10, 0))
+    a = Debug.log "angle" (radians (calculateAngle (0, 1) (0, 0) (1, 0)))
+    degraas = Debug.log "degrees" (a * (180 / pi))
   in
     collage width height forms |> toHtml
