@@ -2,7 +2,8 @@ import Html exposing (Html, Attribute, text, div, input)
 import Html.App exposing (program)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
-import Collage exposing (Form, polygon, collage, filled, rect, circle, move)
+import Collage exposing (Form, groupTransform, polygon, collage, filled, rect, circle, move, rotate)
+import Transform exposing (Transform)
 import Color exposing (Color, rgb)
 import Element exposing (toHtml)
 import Window
@@ -30,7 +31,7 @@ rectangle factor =
 init : (Model, Cmd Msg)
 init =
   let
-    factor = 40
+    factor = 20
     model =
     { width = 500, height = 500
     , mouseX = 0, mouseY = 0
@@ -85,19 +86,50 @@ screenCoordsToCollage : Int -> Int -> Float
 screenCoordsToCollage screenCoord screenSize =
   (toFloat screenCoord) - ((toFloat screenSize) / 2)
 
+buildTree : Int -> Form -> Transform -> Transform -> List Form
+buildTree n form transformationMatrix previousMatrix =
+  let
+    newMatrix = Transform.multiply previousMatrix transformationMatrix
+    form' = groupTransform newMatrix [form]
+  in
+    if n > 0
+      then
+        [form'] ++ buildTree (n-1) form transformationMatrix newMatrix
+      else
+        [form']
+
 view : Model -> Html Msg
 view model =
   let
     {width, height, mouseX, mouseY, point} = model
     posX = screenCoordsToCollage mouseX width
     posY = screenCoordsToCollage mouseY height
+
+    m1 = Transform.translation -20 20
+    m2 = Transform.rotation (degrees -22)
+    m3 = Transform.scale 0.8
+    m4 = Transform.translation 20 -20
+    m5 = Transform.translation 0 40
+
+    mx4 = List.foldl Transform.multiply Transform.identity [m1, m2, m3, m4, m5]
+
+    -- mx5 = Transform.multiply mx4 mx4
+    -- mx6 = Transform.multiply mx5 mx4
+    -- mx7 = Transform.multiply mx6 mx4
+
+    -- form1 = drawRectangle (rgb 0 0 255) 40 40
+    form1 = drawBaseShape model
+
+    -- form4 = groupTransform mx4 [form1]
+    -- form5 = groupTransform mx5 [form1]
+    -- form6 = groupTransform mx6 [form1]
+    -- form7 = groupTransform mx7 [form1]
+
     forms =
       [drawBackground model 0]
-      ++ [move (posX, -posY) (filled (rgb 1 1 1) (rect 10 10))]
-      ++ [drawBaseShape model]
-      ++ [drawDot (rgb 0 0 255) point]
-      ++ [move (0, 80) (rotateAroundPoint (degrees -45) (40, -40) (drawBaseShape model))]
-      ++ [move (0, 80) (rotateAroundPoint (degrees 45) (-40, -40) (drawBaseShape model))]
+      -- ++ [form1, form4, form5, form6, form7]
+      ++ [form1]
+      ++ buildTree 5 form1 mx4 Transform.identity
 
     d = Debug.log "distance" (calculateDistance (-10, 0) (10, 0))
     a = Debug.log "angle" (radians (calculateAngle (0, 1) (0, 0) (1, 0)))
